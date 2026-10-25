@@ -203,3 +203,80 @@ export function classifyNotifications(
   }
   return items.sort((a, b) => b.at.localeCompare(a.at));
 }
+
+export interface Series<S extends string> {
+  key: string;
+  label: string;
+  counts: Record<S, number>;
+  total: number;
+}
+
+export interface Summary<S extends string> {
+  totals: Record<S, number>;
+  byBucket: Series<S>[];
+  byPerson: Series<S>[];
+}
+
+/** Clave de persona en gráficas y filtros; sin responsable = "admin". */
+export const personKey = (personId: string | null) => personId ?? "admin";
+
+/** Cuenta por estado: total, por grupo de fechas (con ceros) y por persona (mayor a menor). */
+export function summarize<S extends string>(
+  items: { status: S; bucketKey: string; personId: string | null; personName: string }[],
+  statuses: readonly S[],
+  buckets: Bucket[],
+): Summary<S> {
+  const zero = () => Object.fromEntries(statuses.map((s) => [s, 0])) as Record<S, number>;
+  const series = (key: string, label: string): Series<S> => ({ key, label, counts: zero(), total: 0 });
+  const add = (s: Series<S>, status: S) => {
+    s.counts[status]++;
+    s.total++;
+  };
+
+  const totals = zero();
+  const byBucket = new Map(buckets.map((b) => [b.key, series(b.key, b.label)]));
+  const byPerson = new Map<string, Series<S>>();
+  for (const it of items) {
+    totals[it.status]++;
+    const b = byBucket.get(it.bucketKey);
+    if (b) add(b, it.status);
+    const pk = personKey(it.personId);
+    if (!byPerson.has(pk)) byPerson.set(pk, series(pk, it.personName));
+    add(byPerson.get(pk)!, it.status);
+  }
+  return {
+    totals,
+    byBucket: [...byBucket.values()],
+    byPerson: [...byPerson.values()].sort((a, b) => b.total - a.total || a.label.localeCompare(b.label)),
+  };
+}
+
+export interface MissingPhones {
+  people: { id: string; name: string }[];
+  tasks: { id: string; title: string; who: string[] }[];
+}
+
+/** Personas sin WhatsApp y tareas activas cuyo aviso no puede llegar a alguien. */
+export function findMissingPhones(
+  profiles: { id: string; full_name: string; phone: string | null; role: "admin" | "operativo" }[],
+  obligations: { id: string; title: string; active: boolean; responsible_id: string | null; backup_id: string | null }[],
+): MissingPhones {
+  const byId = new Map(profiles.map((p) => [p.id, p]));
+  const fallbackAdmin = profiles.find((p) => p.role === "admin") ?? null;
+  const noPhone = (id: string | null | undefined) => !id || !byId.get(id)?.phone;
+
+  const tasks: MissingPhones["tasks"] = [];
+  for (const o of obligations) {
+    if (!o.active) continue;
+    const who: string[] = [];
+    if (o.responsible_id ? noPhone(o.responsible_id) : noPhone(fallbackAdmin?.id)) {
+      who.push(o.responsible_id ? (byId.get(o.responsible_id)?.full_name ?? "Alguien") : ADMIN_LABEL);
+    }
+    if (o.backup_id && noPhone(o.backup_id)) who.push(`${byId.get(o.backup_id)?.full_name ?? "Alguien"} (respaldo)`);
+    if (who.length) tasks.push({ id: o.id, title: o.title, who });
+  }
+  return {
+    people: profiles.filter((p) => !p.phone).map((p) => ({ id: p.id, name: p.full_name })),
+    tasks,
+  };
+}

@@ -5,6 +5,8 @@ import {
   classifyCompliance,
   classifyNotifications,
   fetchAll,
+  findMissingPhones,
+  summarize,
   parsePeriod,
   slotLabel,
   type FailureRow,
@@ -218,5 +220,74 @@ describe("classifyNotifications", () => {
 
   it("tarea que ya no existe se llama Tarea eliminada", () => {
     expect(classify([sent()], [], new Map())[0].title).toBe("Tarea eliminada");
+  });
+});
+
+describe("summarize", () => {
+  const buckets = buildBuckets(7, now);
+  const statuses = ["a_tiempo", "tarde"] as const;
+  const item = (status: (typeof statuses)[number], bucketKey: string, personId: string | null, personName: string) => ({
+    status,
+    bucketKey,
+    personId,
+    personName,
+  });
+  const res = summarize(
+    [
+      item("a_tiempo", "2026-10-20", "beto", "Beto"),
+      item("tarde", "2026-10-20", null, "Administradora"),
+      item("tarde", "2026-10-22", null, "Administradora"),
+    ],
+    statuses,
+    buckets,
+  );
+
+  it("un grupo por día, en orden y con ceros", () => {
+    expect(res.byBucket.map((s) => s.key)).toEqual(buckets.map((b) => b.key));
+    expect(res.byBucket[0]).toEqual({ key: "2026-10-18", label: "Dom 18", counts: { a_tiempo: 0, tarde: 0 }, total: 0 });
+    expect(res.byBucket[2]).toMatchObject({ counts: { a_tiempo: 1, tarde: 1 }, total: 2 });
+  });
+
+  it("personas por total descendente; sin responsable es admin", () => {
+    expect(res.byPerson.map((s) => [s.key, s.label, s.total])).toEqual([
+      ["admin", "Administradora", 2],
+      ["beto", "Beto", 1],
+    ]);
+  });
+
+  it("totales por estado", () => {
+    expect(res.totals).toEqual({ a_tiempo: 1, tarde: 2 });
+  });
+});
+
+describe("findMissingPhones", () => {
+  const profiles = [
+    { id: "majo", full_name: "Majo", phone: null, role: "admin" as const },
+    { id: "beto", full_name: "Beto", phone: null, role: "operativo" as const },
+    { id: "kelly", full_name: "Kelly", phone: null, role: "operativo" as const },
+    { id: "ana", full_name: "Ana", phone: "593991234567", role: "operativo" as const },
+  ];
+  const ob = (id: string, responsible_id: string | null, backup_id: string | null = null, active = true) => ({
+    id,
+    title: `Tarea ${id}`,
+    active,
+    responsible_id,
+    backup_id,
+  });
+
+  it("lista personas y tareas sin WhatsApp", () => {
+    const res = findMissingPhones(profiles, [
+      ob("1", "beto"),
+      ob("2", null),
+      ob("3", "beto", "kelly"),
+      ob("4", "ana"),
+      ob("5", "beto", null, false),
+    ]);
+    expect(res.people.map((p) => p.name)).toEqual(["Majo", "Beto", "Kelly"]);
+    expect(res.tasks).toEqual([
+      { id: "1", title: "Tarea 1", who: ["Beto"] },
+      { id: "2", title: "Tarea 2", who: ["Administradora"] },
+      { id: "3", title: "Tarea 3", who: ["Beto", "Kelly (respaldo)"] },
+    ]);
   });
 });
