@@ -172,12 +172,13 @@ describe("classifyNotifications", () => {
     sent_at: at(22, 10),
     ...over,
   });
-  const fail = (failed_at: string, error = "WhatsApp 400"): FailureRow => ({
+  const fail = (failed_at: string, error = "WhatsApp 400", attempts = 1): FailureRow => ({
     occurrence_id: "o1",
     recipient_id: "beto",
     slot: "reminder:60",
     error,
     failed_at,
+    attempts,
   });
   const classify = (s: NotificationRow[], f: FailureRow[], t = titles) => classifyNotifications(s, f, t, names, buckets);
 
@@ -216,6 +217,10 @@ describe("classifyNotifications", () => {
 
   it("excluye avisos fuera del periodo", () => {
     expect(classify([sent({ sent_at: at(10, 10) })], [])).toEqual([]);
+  });
+
+  it("usa el contador de intentos de la fila (una fila por aviso)", () => {
+    expect(classify([], [fail(at(22, 9), "token vencido", 288)])[0]).toMatchObject({ status: "fallido", attempts: 288 });
   });
 
   it("tarea que ya no existe se llama Tarea eliminada", () => {

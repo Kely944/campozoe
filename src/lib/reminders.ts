@@ -109,11 +109,11 @@ export async function runReminders(db: SupabaseClient, now = new Date()): Promis
       } catch (err) {
         // Guarda el fallo para el panel; si no se puede, no bloquea el reintento.
         try {
-          const { error: logError } = await db.from("notification_failures").insert({
-            occurrence_id: occ.id,
-            recipient_id: item.recipientId,
-            slot: item.slot,
-            error: String(err),
+          const { error: logError } = await db.rpc("log_notification_failure", {
+            p_occurrence: occ.id,
+            p_recipient: item.recipientId,
+            p_slot: item.slot,
+            p_error: String(err),
           });
           if (logError) console.error("No se pudo guardar el fallo", logError);
         } catch (logErr) {

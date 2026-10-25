@@ -97,7 +97,7 @@ async function loadNotices(db: Db, names: Map<string, string>, buckets: Bucket[]
     fetchAll((a, b) =>
       db
         .from("notification_failures")
-        .select("occurrence_id, recipient_id, slot, error, failed_at, occurrences(obligations(title))")
+        .select("occurrence_id, recipient_id, slot, error, attempts, failed_at, occurrences(obligations(title))")
         .gte("failed_at", from)
         .order("failed_at")
         .order("id")

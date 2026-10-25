@@ -136,6 +136,7 @@ export interface FailureRow {
   slot: string;
   error: string;
   failed_at: string;
+  attempts: number;
 }
 
 export interface NoticeItem {
@@ -197,7 +198,7 @@ export function classifyNotifications(
       status: ok ? (ok.status === "sent" ? "enviado" : "simulado") : "fallido",
       at,
       lastError: ok ? null : last!.error,
-      attempts: ok ? 0 : fails.length,
+      attempts: ok ? 0 : fails.reduce((n, f) => n + f.attempts, 0),
       bucketKey,
     });
   }

@@ -23,7 +23,6 @@ function fakeDb(data: Record<string, unknown[]>, failureInsertResult: { error: u
     const call: Call = { table, op: "select", filters: [] };
     const result = () => {
       if (call.op === "insert" && table === "notifications") return { data: { id: "n1" }, error: null };
-      if (call.op === "insert" && table === "notification_failures") return failureInsertResult;
       if (call.op === "select") return { data: data[table] ?? [], error: null };
       return { data: null, error: null };
     };
@@ -43,7 +42,11 @@ function fakeDb(data: Record<string, unknown[]>, failureInsertResult: { error: u
     };
     return builder;
   };
-  return { db: { from } as unknown as SupabaseClient, calls };
+  const rpc = (fn: string, args: unknown) => {
+    calls.push({ table: fn, op: "rpc", payload: args, filters: [] });
+    return Promise.resolve(fn === "log_notification_failure" ? failureInsertResult : { data: null, error: null });
+  };
+  return { db: { from, rpc } as unknown as SupabaseClient, calls };
 }
 
 const now = fromLocal(2026, 10, 27, 8, 30);
@@ -76,19 +79,19 @@ const data = {
 };
 
 describe("runReminders: fallos de envío", () => {
-  it("un envío fallido se guarda en notification_failures y libera el slot", async () => {
+  it("un envío fallido se registra con log_notification_failure y libera el slot", async () => {
     const { db, calls } = fakeDb(data);
     const summary = await runReminders(db, now);
 
     expect(calls).toContainEqual(
       expect.objectContaining({
-        table: "notification_failures",
-        op: "insert",
+        table: "log_notification_failure",
+        op: "rpc",
         payload: {
-          occurrence_id: occurrenceId,
-          recipient_id: "majo",
-          slot: "reminder:60",
-          error: "Error: WhatsApp 400: número inválido",
+          p_occurrence: occurrenceId,
+          p_recipient: "majo",
+          p_slot: "reminder:60",
+          p_error: "Error: WhatsApp 400: número inválido",
         },
       }),
     );
