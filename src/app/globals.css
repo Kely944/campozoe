@@ -3,6 +3,11 @@
 :root {
   --background: #f6f7f5;
   --foreground: #1c1f1a;
+  /* Colores de estado del panel (fijos) */
+  --st-bien: #0ca30c;
+  --st-adv: #fab219;
+  --st-crit: #d03b3b;
+  --st-neutro: #8a8984;
 }
 
 body {
