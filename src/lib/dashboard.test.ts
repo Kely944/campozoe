@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { bucketKeyFor, buildBuckets, fetchAll, parsePeriod } from "./dashboard";
+import { bucketKeyFor, buildBuckets, classifyCompliance, fetchAll, parsePeriod, type OccurrenceRow } from "./dashboard";
 import { DAY, fromLocal } from "./time";
 
 const now = fromLocal(2026, 10, 24, 15); // sábado
@@ -72,5 +72,66 @@ describe("fetchAll", () => {
   it("lanza el error de la consulta", async () => {
     const err = { message: "boom" };
     await expect(fetchAll(() => Promise.resolve({ data: null, error: err }))).rejects.toBe(err);
+  });
+});
+
+describe("classifyCompliance", () => {
+  const buckets = buildBuckets(7, now);
+  const names = new Map([
+    ["beto", "Beto"],
+    ["majo", "Majo"],
+  ]);
+  const due = fromLocal(2026, 10, 22, 9);
+  const row = (over: Partial<OccurrenceRow>): OccurrenceRow => ({
+    id: "o1",
+    due_at: due.toISOString(),
+    status: "done",
+    done_at: due.toISOString(),
+    done_by: "beto",
+    title: "Pedido de champiñón",
+    responsible_id: "beto",
+    ...over,
+  });
+  const classify = (rows: OccurrenceRow[]) => classifyCompliance(rows, names, buckets, now);
+
+  it("marcada a la hora exacta del plazo es a tiempo", () => {
+    expect(classify([row({})])[0]).toMatchObject({
+      status: "a_tiempo",
+      personId: "beto",
+      personName: "Beto",
+      doneByName: "Beto",
+      bucketKey: "2026-10-22",
+    });
+  });
+
+  it("un minuto después del plazo es tarde", () => {
+    const late = new Date(due.getTime() + 60_000).toISOString();
+    expect(classify([row({ done_at: late })])[0].status).toBe("tarde");
+  });
+
+  it("pendiente con plazo pasado es sin hacer", () => {
+    expect(classify([row({ status: "pending", done_at: null, done_by: null })])[0]).toMatchObject({
+      status: "sin_hacer",
+      doneByName: null,
+    });
+  });
+
+  it("excluye ocurrencias futuras y anteriores al periodo", () => {
+    const future = fromLocal(2026, 10, 24, 16).toISOString();
+    const before = fromLocal(2026, 10, 17, 9).toISOString();
+    expect(classify([row({ due_at: future, status: "pending" }), row({ due_at: before })])).toEqual([]);
+  });
+
+  it("sin responsable se muestra como Administradora", () => {
+    expect(classify([row({ responsible_id: null })])[0]).toMatchObject({ personId: null, personName: "Administradora" });
+  });
+
+  it("quien marcó y no está en la lista es Alguien", () => {
+    expect(classify([row({ done_by: "x" })])[0].doneByName).toBe("Alguien");
+  });
+
+  it("ordena por fecha límite descendente", () => {
+    const older = fromLocal(2026, 10, 20, 9).toISOString();
+    expect(classify([row({ id: "a", due_at: older, done_at: older }), row({ id: "b" })]).map((i) => i.id)).toEqual(["b", "a"]);
   });
 });

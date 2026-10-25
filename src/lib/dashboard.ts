@@ -62,3 +62,59 @@ export async function fetchAll<T>(
     if (!data || data.length < size) return all;
   }
 }
+
+export const ADMIN_LABEL = "Administradora";
+
+export type ComplianceStatus = "a_tiempo" | "tarde" | "sin_hacer";
+export const COMPLIANCE_STATUSES: readonly ComplianceStatus[] = ["a_tiempo", "tarde", "sin_hacer"];
+
+export interface OccurrenceRow {
+  id: string;
+  due_at: string;
+  status: "pending" | "done";
+  done_at: string | null;
+  done_by: string | null;
+  title: string;
+  responsible_id: string | null;
+}
+
+export interface ComplianceItem {
+  id: string;
+  title: string;
+  dueAt: string;
+  personId: string | null;
+  personName: string;
+  status: ComplianceStatus;
+  doneByName: string | null;
+  doneAt: string | null;
+  bucketKey: string;
+}
+
+/** Ocurrencias con plazo ya pasado dentro del periodo: a tiempo, tarde o sin hacer. */
+export function classifyCompliance(
+  rows: OccurrenceRow[],
+  names: Map<string, string>,
+  buckets: Bucket[],
+  now: Date,
+): ComplianceItem[] {
+  const items: ComplianceItem[] = [];
+  for (const r of rows) {
+    const due = new Date(r.due_at);
+    if (due >= now) continue;
+    const bucketKey = bucketKeyFor(due, buckets);
+    if (!bucketKey) continue;
+    const done = r.status === "done";
+    items.push({
+      id: r.id,
+      title: r.title,
+      dueAt: r.due_at,
+      personId: r.responsible_id,
+      personName: r.responsible_id ? (names.get(r.responsible_id) ?? ADMIN_LABEL) : ADMIN_LABEL,
+      status: !done ? "sin_hacer" : new Date(r.done_at ?? r.due_at) <= due ? "a_tiempo" : "tarde",
+      doneByName: done ? (names.get(r.done_by ?? "") ?? "Alguien") : null,
+      doneAt: done ? r.done_at : null,
+      bucketKey,
+    });
+  }
+  return items.sort((a, b) => b.dueAt.localeCompare(a.dueAt));
+}
