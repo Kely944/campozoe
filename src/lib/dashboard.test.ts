@@ -1,5 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
-import { bucketKeyFor, buildBuckets, classifyCompliance, fetchAll, parsePeriod, type OccurrenceRow } from "./dashboard";
+import {
+  bucketKeyFor,
+  buildBuckets,
+  classifyCompliance,
+  classifyNotifications,
+  fetchAll,
+  parsePeriod,
+  slotLabel,
+  type FailureRow,
+  type NotificationRow,
+  type OccurrenceRow,
+} from "./dashboard";
 import { DAY, fromLocal } from "./time";
 
 const now = fromLocal(2026, 10, 24, 15); // sábado
@@ -133,5 +144,79 @@ describe("classifyCompliance", () => {
   it("ordena por fecha límite descendente", () => {
     const older = fromLocal(2026, 10, 20, 9).toISOString();
     expect(classify([row({ id: "a", due_at: older, done_at: older }), row({ id: "b" })]).map((i) => i.id)).toEqual(["b", "a"]);
+  });
+});
+
+describe("slotLabel", () => {
+  it("nombra cada tipo de aviso en español", () => {
+    expect(slotLabel("reminder:1440")).toBe("Aviso 1 día antes");
+    expect(slotLabel("reminder:120")).toBe("Aviso 2 h antes");
+    expect(slotLabel("repeat:3")).toBe("Repetición");
+    expect(slotLabel("escalation")).toBe("Aviso al respaldo");
+    expect(slotLabel("overdue")).toBe("Vencida");
+  });
+});
+
+describe("classifyNotifications", () => {
+  const buckets = buildBuckets(7, now);
+  const names = new Map([["beto", "Beto"]]);
+  const titles = new Map([["o1", "Oferta Favorita"]]);
+  const at = (d: number, h: number, m = 0) => fromLocal(2026, 10, d, h, m).toISOString();
+  const sent = (over: Partial<NotificationRow> = {}): NotificationRow => ({
+    occurrence_id: "o1",
+    recipient_id: "beto",
+    slot: "reminder:60",
+    status: "sent",
+    sent_at: at(22, 10),
+    ...over,
+  });
+  const fail = (failed_at: string, error = "WhatsApp 400"): FailureRow => ({
+    occurrence_id: "o1",
+    recipient_id: "beto",
+    slot: "reminder:60",
+    error,
+    failed_at,
+  });
+  const classify = (s: NotificationRow[], f: FailureRow[], t = titles) => classifyNotifications(s, f, t, names, buckets);
+
+  it("falló y luego salió: un solo aviso enviado", () => {
+    const res = classify([sent()], [fail(at(22, 9)), fail(at(22, 9, 5))]);
+    expect(res).toEqual([
+      {
+        key: "o1|reminder:60|beto",
+        occurrenceId: "o1",
+        title: "Oferta Favorita",
+        slotLabel: "Aviso 1 h antes",
+        personId: "beto",
+        personName: "Beto",
+        status: "enviado",
+        at: at(22, 10),
+        lastError: null,
+        attempts: 0,
+        bucketKey: "2026-10-22",
+      },
+    ]);
+  });
+
+  it("solo fallos: un aviso fallido con el último error y los intentos", () => {
+    const res = classify([], [fail(at(21, 9), "viejo"), fail(at(22, 9, 10), "último"), fail(at(22, 9, 5), "medio")]);
+    expect(res).toHaveLength(1);
+    expect(res[0]).toMatchObject({ status: "fallido", attempts: 3, lastError: "último", at: at(22, 9, 10), bucketKey: "2026-10-22" });
+  });
+
+  it("excluye envíos en curso sin fallos", () => {
+    expect(classify([sent({ status: "sending" })], [])).toEqual([]);
+  });
+
+  it("simulated se muestra como simulado", () => {
+    expect(classify([sent({ status: "simulated" })], [])[0].status).toBe("simulado");
+  });
+
+  it("excluye avisos fuera del periodo", () => {
+    expect(classify([sent({ sent_at: at(10, 10) })], [])).toEqual([]);
+  });
+
+  it("tarea que ya no existe se llama Tarea eliminada", () => {
+    expect(classify([sent()], [], new Map())[0].title).toBe("Tarea eliminada");
   });
 });

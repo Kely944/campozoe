@@ -1,5 +1,5 @@
 // Cálculos del panel de administración: funciones puras, sin acceso a la base de datos.
-import { WEEKDAY_LABELS } from "./obligation-form";
+import { WEEKDAY_LABELS, minutesLabel } from "./obligation-form";
 import { DAY, fromLocal, toLocal } from "./time";
 
 export type Period = 7 | 30 | 90;
@@ -117,4 +117,89 @@ export function classifyCompliance(
     });
   }
   return items.sort((a, b) => b.dueAt.localeCompare(a.dueAt));
+}
+
+export type NoticeStatus = "enviado" | "simulado" | "fallido";
+export const NOTICE_STATUSES: readonly NoticeStatus[] = ["enviado", "simulado", "fallido"];
+
+export interface NotificationRow {
+  occurrence_id: string;
+  recipient_id: string;
+  slot: string;
+  status: "sending" | "sent" | "simulated";
+  sent_at: string;
+}
+
+export interface FailureRow {
+  occurrence_id: string;
+  recipient_id: string;
+  slot: string;
+  error: string;
+  failed_at: string;
+}
+
+export interface NoticeItem {
+  key: string;
+  occurrenceId: string;
+  title: string;
+  slotLabel: string;
+  personId: string;
+  personName: string;
+  status: NoticeStatus;
+  at: string;
+  lastError: string | null;
+  attempts: number;
+  bucketKey: string;
+}
+
+/** "reminder:1440" -> "Aviso 1 día antes" */
+export function slotLabel(slot: string): string {
+  if (slot.startsWith("reminder:")) return `Aviso ${minutesLabel(Number(slot.slice(9)))} antes`;
+  if (slot.startsWith("repeat:")) return "Repetición";
+  if (slot === "escalation") return "Aviso al respaldo";
+  if (slot === "overdue") return "Vencida";
+  return slot;
+}
+
+/**
+ * Un aviso es (ocurrencia, slot, destinatario) y cuenta una sola vez: enviado o simulado
+ * si salió (aunque antes fallara), fallido si solo tiene fallos.
+ */
+export function classifyNotifications(
+  sent: NotificationRow[],
+  failures: FailureRow[],
+  titles: Map<string, string>,
+  names: Map<string, string>,
+  buckets: Bucket[],
+): NoticeItem[] {
+  const keyOf = (r: { occurrence_id: string; slot: string; recipient_id: string }) =>
+    `${r.occurrence_id}|${r.slot}|${r.recipient_id}`;
+  const delivered = new Map(sent.filter((s) => s.status !== "sending").map((s) => [keyOf(s), s]));
+  const failed = new Map<string, FailureRow[]>();
+  for (const f of failures) failed.set(keyOf(f), [...(failed.get(keyOf(f)) ?? []), f]);
+
+  const items: NoticeItem[] = [];
+  for (const key of new Set([...delivered.keys(), ...failed.keys()])) {
+    const ok = delivered.get(key);
+    const fails = failed.get(key) ?? [];
+    const last = fails.reduce<FailureRow | null>((a, f) => (!a || f.failed_at > a.failed_at ? f : a), null);
+    const base = ok ?? last!;
+    const at = ok ? ok.sent_at : last!.failed_at;
+    const bucketKey = bucketKeyFor(new Date(at), buckets);
+    if (!bucketKey) continue;
+    items.push({
+      key,
+      occurrenceId: base.occurrence_id,
+      title: titles.get(base.occurrence_id) ?? "Tarea eliminada",
+      slotLabel: slotLabel(base.slot),
+      personId: base.recipient_id,
+      personName: names.get(base.recipient_id) ?? "Alguien",
+      status: ok ? (ok.status === "sent" ? "enviado" : "simulado") : "fallido",
+      at,
+      lastError: ok ? null : last!.error,
+      attempts: ok ? 0 : fails.length,
+      bucketKey,
+    });
+  }
+  return items.sort((a, b) => b.at.localeCompare(a.at));
 }
