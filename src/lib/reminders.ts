@@ -107,6 +107,18 @@ export async function runReminders(db: SupabaseClient, now = new Date()): Promis
           .eq("id", claimed.id);
         summary[result.status === "sent" ? "sent" : "simulated"]++;
       } catch (err) {
+        // Guarda el fallo para el panel; si no se puede, no bloquea el reintento.
+        try {
+          const { error: logError } = await db.from("notification_failures").insert({
+            occurrence_id: occ.id,
+            recipient_id: item.recipientId,
+            slot: item.slot,
+            error: String(err),
+          });
+          if (logError) console.error("No se pudo guardar el fallo", logError);
+        } catch (logErr) {
+          console.error("No se pudo guardar el fallo", logErr);
+        }
         // Libera el slot para reintentar en la próxima ejecución.
         await db.from("notifications").delete().eq("id", claimed.id);
         summary.failed.push({ occurrenceId: occ.id, error: String(err) });
