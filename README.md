@@ -15,12 +15,13 @@ Stack: Next.js 15 + Supabase (PostgreSQL, Auth) + WhatsApp Business Cloud API. H
 | RF-05 Marcar hecho desde la app o el botón de WhatsApp | `/` y `/api/whatsapp/webhook` |
 | RF-06 Pantalla "Hoy y esta semana" | `/` |
 | RF-07 Obligaciones precargadas | `supabase/seed.sql` |
+| Panel de administración: gráficas de cumplimiento y avisos (solo administradoras) | `/admin` |
 
 Sin avisos entre 21:00 y 07:00 (hora de Ecuador). Si una tarea no tiene responsable, el aviso va a la administradora.
 
 ## Puesta en marcha
 
-1. **Supabase**: crear un proyecto en supabase.com. En *SQL Editor* ejecutar, en orden, `supabase/migrations/0001_m1_recordatorios.sql`, `supabase/migrations/0002_seguridad_ocurrencias.sql` y luego `supabase/seed.sql`.
+1. **Supabase**: crear un proyecto en supabase.com. En *SQL Editor* ejecutar, en orden, `supabase/migrations/0001_m1_recordatorios.sql`, `supabase/migrations/0002_seguridad_ocurrencias.sql`, `supabase/migrations/0003_fallos_avisos.sql` y luego `supabase/seed.sql`.
    **Importante:** en *Authentication > Sign In / Providers* desactivar *Allow new users to sign up*. Si queda activo, cualquiera con la URL puede crearse una cuenta y ver las tareas. Los usuarios se crean solo desde el panel.
 2. **Usuarios**: en *Authentication > Users* crear el usuario de Majo (correo y contraseña). Hacerla administradora:
    ```sql

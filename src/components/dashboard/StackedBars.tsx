@@ -96,8 +96,8 @@ export default function StackedBars<S extends string>(props: Props<S>) {
           </div>
           <div className="flex gap-[2px] overflow-hidden pr-6 pt-1">
             {series.map((s, i) => (
-              <span key={s.key} className="min-w-0 flex-1 overflow-visible whitespace-nowrap text-center text-xs text-stone-500">
-                {i % every === 0 || i === series.length - 1 ? s.label : ""}
+              <span key={s.key} className="min-w-0 flex-1 overflow-visible whitespace-nowrap text-left text-xs text-stone-500">
+                {i % every === 0 ? s.label : ""}
               </span>
             ))}
           </div>
