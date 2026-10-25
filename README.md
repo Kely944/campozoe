@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pendientes Majo – M1 Recordatorios
 
-## Getting Started
+Aplicación web (PWA) que avisa por WhatsApp los plazos del negocio: oferta a Corporación Favorita, pedidos de champiñón y etiquetas, cuotas de préstamos. Los avisos se repiten hasta que alguien marca la tarea como hecha y, si sigue pendiente, se avisa al respaldo.
 
-First, run the development server:
+Stack: Next.js 15 + Supabase (PostgreSQL, Auth) + WhatsApp Business Cloud API. Hosting sugerido: Vercel.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Qué incluye M1
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+| Requerimiento | Dónde |
+| --- | --- |
+| RF-01 Obligaciones con fecha, frecuencia y responsable | `/obligaciones`, tabla `obligations` |
+| RF-02 Avisos por WhatsApp con anticipación configurable | `src/lib/reminders.ts`, `src/lib/whatsapp.ts` |
+| RF-03 Repetir hasta marcar hecho | `planNotifications` en `src/lib/schedule.ts` |
+| RF-04 Aviso al respaldo | ídem (`escalation`) |
+| RF-05 Marcar hecho desde la app o el botón de WhatsApp | `/` y `/api/whatsapp/webhook` |
+| RF-06 Pantalla "Hoy y esta semana" | `/` |
+| RF-07 Obligaciones precargadas | `supabase/seed.sql` |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Sin avisos entre 21:00 y 07:00 (hora de Ecuador). Si una tarea no tiene responsable, el aviso va a la administradora.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Puesta en marcha
 
-## Learn More
+1. **Supabase**: crear un proyecto en supabase.com. En *SQL Editor* ejecutar `supabase/migrations/0001_m1_recordatorios.sql` y luego `supabase/seed.sql`.
+2. **Usuarios**: en *Authentication > Users* crear el usuario de Majo (correo y contraseña). Hacerla administradora:
+   ```sql
+   update profiles set role = 'admin', full_name = 'Majo', phone = '593XXXXXXXXX' where id = (select id from auth.users where email = 'correo-de-majo@ejemplo.com');
+   ```
+   Crear también a Beto y Kelly; sus teléfonos se cargan desde la pantalla *Equipo*.
+3. **Variables**: copiar `.env.example` a `.env.local` y completar las claves de Supabase y `CRON_SECRET`.
+4. **Local**:
+   ```bash
+   npm install
+   npm run dev      # http://localhost:3000
+   npm test         # pruebas de la lógica de recordatorios
+   ```
+   Sin credenciales de WhatsApp los avisos se muestran en la consola como `[WhatsApp simulado]`. Para disparar el ciclo a mano:
+   ```bash
+   curl -H "Authorization: Bearer TU_CRON_SECRET" http://localhost:3000/api/cron/reminders
+   ```
+5. **Vercel**: importar el repositorio y cargar las mismas variables.
+6. **Cron cada 5 minutos**: el plan gratis de Vercel solo permite cron diario, así que se usa Supabase. Activar las extensiones `pg_cron` y `pg_net` y ejecutar `supabase/cron.sql` con la URL y el secreto reales.
 
-To learn more about Next.js, take a look at the following resources:
+## WhatsApp (Meta)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Crear una app en developers.facebook.com con el producto WhatsApp y un número exclusivo para el sistema (no puede estar en uso en la app de WhatsApp).
+2. Crear y hacer aprobar la plantilla `recordatorio_tarea` (categoría *Utility*, idioma español):
+   - Cuerpo: `{{1}}: {{2}}. Vence: {{3}}.`
+   - Botón de respuesta rápida: `Hecho`
+3. Cargar `WHATSAPP_TOKEN` (token permanente de usuario del sistema), `WHATSAPP_PHONE_NUMBER_ID` y `WHATSAPP_APP_SECRET`.
+4. Webhook: URL `https://TU-APP.vercel.app/api/whatsapp/webhook`, token de verificación = `WHATSAPP_VERIFY_TOKEN`, suscribirse a `messages`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+El botón "Hecho" solo marca la tarea si el número que responde es del responsable, del respaldo o de una administradora.
 
-## Deploy on Vercel
+## Instalar en el celular
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Abrir la URL en Chrome (Android) o Safari (iPhone) y elegir *Agregar a pantalla de inicio*.
