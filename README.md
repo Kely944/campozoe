@@ -20,7 +20,8 @@ Sin avisos entre 21:00 y 07:00 (hora de Ecuador). Si una tarea no tiene responsa
 
 ## Puesta en marcha
 
-1. **Supabase**: crear un proyecto en supabase.com. En *SQL Editor* ejecutar `supabase/migrations/0001_m1_recordatorios.sql` y luego `supabase/seed.sql`.
+1. **Supabase**: crear un proyecto en supabase.com. En *SQL Editor* ejecutar, en orden, `supabase/migrations/0001_m1_recordatorios.sql`, `supabase/migrations/0002_seguridad_ocurrencias.sql` y luego `supabase/seed.sql`.
+   **Importante:** en *Authentication > Sign In / Providers* desactivar *Allow new users to sign up*. Si queda activo, cualquiera con la URL puede crearse una cuenta y ver las tareas. Los usuarios se crean solo desde el panel.
 2. **Usuarios**: en *Authentication > Users* crear el usuario de Majo (correo y contraseña). Hacerla administradora:
    ```sql
    update profiles set role = 'admin', full_name = 'Majo', phone = '593XXXXXXXXX' where id = (select id from auth.users where email = 'correo-de-majo@ejemplo.com');

@@ -29,19 +29,15 @@ export async function signOut() {
 
 export async function markDone(occurrenceId: string) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  await supabase
-    .from("occurrences")
-    .update({ status: "done", done_by: user?.id, done_at: new Date().toISOString(), done_via: "app" })
-    .eq("id", occurrenceId);
+  // done_by lo fija la base de datos con el usuario de la sesión (migración 0002).
+  await supabase.rpc("mark_done", { occurrence_id: occurrenceId });
   revalidatePath("/");
 }
 
 export async function undoDone(occurrenceId: string) {
   const supabase = await createClient();
-  await supabase.from("occurrences").update({ status: "pending", done_by: null, done_at: null, done_via: null }).eq("id", occurrenceId);
+  // Solo quien la marcó o una administradora (lo valida la base de datos).
+  await supabase.rpc("undo_done", { occurrence_id: occurrenceId });
   revalidatePath("/");
 }
 
