@@ -5,6 +5,7 @@ import {
   classifyCompliance,
   classifyNotifications,
   fetchAll,
+  filterDetail,
   findMissingPhones,
   summarize,
   parsePeriod,
@@ -294,5 +295,31 @@ describe("findMissingPhones", () => {
       { id: "2", title: "Tarea 2", who: ["Administradora"] },
       { id: "3", title: "Tarea 3", who: ["Beto", "Kelly (respaldo)"] },
     ]);
+  });
+});
+
+describe("filterDetail", () => {
+  const rows = [
+    { id: "1", bucketKey: "2026-10-20", personKey: "beto", status: "tarde" },
+    { id: "2", bucketKey: "2026-10-20", personKey: "admin", status: "a_tiempo" },
+    { id: "3", bucketKey: "2026-10-21", personKey: "beto", status: "a_tiempo" },
+  ];
+  const ids = (f: Parameters<typeof filterDetail>[1]) => filterDetail(rows, f).map((r) => r.id);
+
+  it("sin filtro devuelve todo", () => {
+    expect(ids({ selection: null, status: null })).toEqual(["1", "2", "3"]);
+  });
+
+  it("filtra por barra tocada (fecha o persona)", () => {
+    expect(ids({ selection: { axis: "bucket", key: "2026-10-20" }, status: null })).toEqual(["1", "2"]);
+    expect(ids({ selection: { axis: "person", key: "beto" }, status: null })).toEqual(["1", "3"]);
+  });
+
+  it("filtra por estado de la leyenda", () => {
+    expect(ids({ selection: null, status: "a_tiempo" })).toEqual(["2", "3"]);
+  });
+
+  it("combina barra y estado", () => {
+    expect(ids({ selection: { axis: "person", key: "beto" }, status: "tarde" })).toEqual(["1"]);
   });
 });

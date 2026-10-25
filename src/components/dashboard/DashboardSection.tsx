@@ -1,8 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import type { Summary } from "@/lib/dashboard";
-import StackedBars, { type Selection } from "./StackedBars";
+import { filterDetail, type BarSelection, type Summary } from "@/lib/dashboard";
+import StackedBars from "./StackedBars";
 
 export interface DetailRow {
   id: string;
@@ -31,27 +31,27 @@ const MAX_ROWS = 200;
 /** Bloque del panel: cifras, leyenda, gráficas por fecha y por persona, y lista filtrable. */
 export default function DashboardSection(props: Props) {
   const { title, emptyText, summary, statuses, statusLabels, colors, columns, rows, percentOf, tiles = [], extra } = props;
-  const [selected, setSelected] = useState<Selection | null>(null);
+  const [selected, setSelected] = useState<BarSelection | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const total = statuses.reduce((n, s) => n + summary.totals[s], 0);
 
-  const select = (s: Selection | null) => {
+  const select = (s: BarSelection | null) => {
     setSelected(s);
     if (s) listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
+  const clear = () => {
+    setSelected(null);
+    setStatus(null);
+  };
 
-  const filtered = selected
-    ? rows.filter(
-        (r) => r.status === selected.status && (selected.axis === "bucket" ? r.bucketKey : r.personKey) === selected.key,
-      )
-    : rows;
-  const selectedLabel = selected
-    ? `${statusLabels[selected.status]} · ${
-        (selected.axis === "bucket" ? summary.byBucket : summary.byPerson).find((s) => s.key === selected.key)?.label ?? ""
-      }`
+  const filtered = filterDetail(rows, { selection: selected, status });
+  const barLabel = selected
+    ? (selected.axis === "bucket" ? summary.byBucket : summary.byPerson).find((s) => s.key === selected.key)?.label
     : null;
+  const filterLabel = [status ? statusLabels[status] : null, barLabel].filter(Boolean).join(" · ") || null;
 
-  const chart = { statuses, statusLabels, colors, selected, onSelect: select };
+  const chart = { statuses, statusLabels, colors, selected, status, onSelect: select };
 
   return (
     <section className="mb-10 space-y-4">
@@ -82,14 +82,26 @@ export default function DashboardSection(props: Props) {
         <p className="card text-stone-500">{emptyText}</p>
       ) : (
         <div className="card space-y-6">
-          <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-stone-700" aria-label="Leyenda">
-            {statuses.map((s) => (
-              <li key={s} className="flex items-center gap-2">
-                <span className="size-3 rounded-sm" style={{ background: colors[s] }} aria-hidden />
-                {statusLabels[s]}
-              </li>
-            ))}
-          </ul>
+          <div className="space-y-1">
+            <p className="text-xs text-stone-500">Toca un estado para ver solo ese:</p>
+            <ul className="flex flex-wrap gap-2 text-sm text-stone-700" aria-label="Leyenda">
+              {statuses.map((s) => (
+                <li key={s}>
+                  <button
+                    type="button"
+                    aria-pressed={status === s}
+                    onClick={() => setStatus(status === s ? null : s)}
+                    className={`flex min-h-11 items-center gap-2 rounded-lg border px-3 ${
+                      status === s ? "border-stone-800 bg-stone-100 font-semibold" : "border-stone-200"
+                    }`}
+                  >
+                    <span className="size-3 rounded-sm" style={{ background: colors[s] }} aria-hidden />
+                    {statusLabels[s]}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
           <StackedBars {...chart} series={summary.byBucket} orientation="vertical" axis="bucket" title="Por fecha" />
           <StackedBars {...chart} series={summary.byPerson} orientation="horizontal" axis="person" title="Por persona" />
         </div>
@@ -100,10 +112,10 @@ export default function DashboardSection(props: Props) {
           <h3 className="font-semibold">
             Detalle <span className="font-normal text-stone-500">({filtered.length})</span>
           </h3>
-          {selectedLabel && (
+          {filterLabel && (
             <div className="flex items-center gap-2">
-              <span className="rounded-lg bg-stone-200 px-3 py-1 text-sm font-semibold">{selectedLabel}</span>
-              <button type="button" className="btn-secondary" onClick={() => select(null)}>
+              <span className="rounded-lg bg-stone-200 px-3 py-1 text-sm font-semibold">{filterLabel}</span>
+              <button type="button" className="btn-secondary" onClick={clear}>
                 Ver todo
               </button>
             </div>

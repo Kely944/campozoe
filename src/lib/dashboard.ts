@@ -281,3 +281,23 @@ export function findMissingPhones(
     tasks,
   };
 }
+
+/** Barra tocada: un día o semana, o una persona. */
+export interface BarSelection {
+  axis: "bucket" | "person";
+  key: string;
+}
+
+/** Filtro de la lista: barra tocada y/o estado elegido en la leyenda. */
+export interface ListFilter {
+  selection: BarSelection | null;
+  status: string | null;
+}
+
+export function filterDetail<T extends { bucketKey: string; personKey: string; status: string }>(rows: T[], f: ListFilter): T[] {
+  return rows.filter(
+    (r) =>
+      (!f.status || r.status === f.status) &&
+      (!f.selection || (f.selection.axis === "bucket" ? r.bucketKey : r.personKey) === f.selection.key),
+  );
+}

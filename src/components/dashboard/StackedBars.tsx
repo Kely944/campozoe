@@ -1,13 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Series } from "@/lib/dashboard";
-
-export interface Selection {
-  axis: "bucket" | "person";
-  key: string;
-  status: string;
-}
+import type { BarSelection, Series } from "@/lib/dashboard";
 
 interface Props<S extends string> {
   series: Series<S>[];
@@ -15,61 +9,79 @@ interface Props<S extends string> {
   statusLabels: Record<S, string>;
   colors: Record<S, string>; // valores var(--...)
   orientation: "vertical" | "horizontal";
-  axis: Selection["axis"];
-  selected: Selection | null;
-  onSelect: (s: Selection | null) => void;
+  axis: BarSelection["axis"];
+  selected: BarSelection | null;
+  status: string | null; // estado elegido en la leyenda: los demás segmentos se atenúan
+  onSelect: (s: BarSelection | null) => void;
   title: string;
 }
 
-const same = (a: Selection | null, b: Selection) => !!a && a.axis === b.axis && a.key === b.key && a.status === b.status;
-
-/** Barras apiladas hechas a mano: cada segmento es un botón que filtra la lista. */
+/**
+ * Barras apiladas hechas a mano. Cada barra completa (columna o fila) es un botón grande que
+ * filtra la lista; el estado se elige en la leyenda.
+ */
 export default function StackedBars<S extends string>(props: Props<S>) {
-  const { series, statuses, statusLabels, colors, orientation, axis, selected, onSelect, title } = props;
-  const [hover, setHover] = useState<{ sel: Selection; text: string } | null>(null);
+  const { series, statuses, statusLabels, colors, orientation, axis, selected, status, onSelect, title } = props;
+  const [hover, setHover] = useState<string | null>(null);
   const max = Math.max(1, ...series.map((s) => s.total));
   const vertical = orientation === "vertical";
 
-  const describe = (s: Series<S>, status: S) => `${s.label} · ${statusLabels[status]} · ${s.counts[status]}`;
-  const tooltip =
-    hover?.text ??
-    (selected?.axis === axis
-      ? (() => {
-          const s = series.find((x) => x.key === selected.key);
-          return s ? describe(s, selected.status as S) : null;
-        })()
-      : null);
+  const describe = (s: Series<S>) => {
+    const parts = statuses.filter((st) => s.counts[st] > 0).map((st) => `${statusLabels[st]} ${s.counts[st]}`);
+    return `${s.label} · ${parts.length ? parts.join(" · ") : "sin datos"}`;
+  };
+  const selectedSeries = selected?.axis === axis ? series.find((s) => s.key === selected.key) : undefined;
+  const tooltip = hover ?? (selectedSeries ? describe(selectedSeries) : null);
 
-  const segments = (s: Series<S>) => {
+  const bar = (s: Series<S>) => {
+    const isSelected = selected?.axis === axis && selected.key === s.key;
+    const dimBar = selected?.axis === axis && !isSelected;
     const nonZero = statuses.filter((st) => s.counts[st] > 0);
-    return nonZero.map((status, i) => {
-      const sel: Selection = { axis, key: s.key, status };
-      const dimmed = selected && !same(selected, sel);
-      const size = `${(s.counts[status] / max) * 100}%`;
-      const end = i === nonZero.length - 1;
-      return (
-        <button
-          key={status}
-          type="button"
-          aria-label={describe(s, status)}
-          aria-pressed={same(selected, sel)}
-          onClick={() => onSelect(same(selected, sel) ? null : sel)}
-          onMouseEnter={() => setHover({ sel, text: describe(s, status) })}
-          onMouseLeave={() => setHover(null)}
-          onFocus={() => setHover({ sel, text: describe(s, status) })}
-          onBlur={() => setHover(null)}
-          className={`shrink-0 outline-offset-2 focus-visible:outline-2 focus-visible:outline-stone-800 ${
-            end ? (vertical ? "rounded-t-[4px]" : "rounded-r-[4px]") : ""
-          }`}
-          style={{
-            background: colors[status],
-            opacity: dimmed ? 0.35 : 1,
-            [vertical ? "height" : "width"]: size,
-            [vertical ? "width" : "height"]: "100%",
-          }}
-        />
-      );
-    });
+    // La pila ocupa la fracción del máximo; cada segmento crece según su cantidad.
+    const track = `${(s.total / max) * 100}%`;
+    return (
+      <button
+        key={s.key}
+        type="button"
+        aria-label={describe(s)}
+        aria-pressed={isSelected}
+        onClick={() => onSelect(isSelected ? null : { axis, key: s.key })}
+        onMouseEnter={() => setHover(describe(s))}
+        onMouseLeave={() => setHover(null)}
+        onFocus={() => setHover(describe(s))}
+        onBlur={() => setHover(null)}
+        className={`flex min-w-0 outline-offset-2 focus-visible:outline-2 focus-visible:outline-stone-800 ${
+          vertical ? "h-full flex-1 flex-col-reverse" : "h-11 w-full items-center gap-2 text-left"
+        } ${isSelected ? "rounded-md bg-stone-100" : ""}`}
+        style={{ opacity: dimBar ? 0.35 : 1 }}
+      >
+        {!vertical && (
+          <span className="w-[6.5rem] shrink-0 truncate text-sm text-stone-700" title={s.label}>
+            {s.label}
+          </span>
+        )}
+        <span className={`flex min-w-0 ${vertical ? "h-full w-full flex-col-reverse" : "h-8 flex-1"}`} aria-hidden>
+          <span
+            className={`flex gap-[2px] ${vertical ? "w-full flex-col-reverse" : "h-full"}`}
+            style={{ [vertical ? "height" : "width"]: track }}
+          >
+            {nonZero.map((st, i) => (
+              <span
+                key={st}
+                className={`min-h-0 min-w-0 ${i === nonZero.length - 1 ? (vertical ? "rounded-t-[4px]" : "rounded-r-[4px]") : ""}`}
+                style={{
+                  background: colors[st],
+                  opacity: status && status !== st ? 0.35 : 1,
+                  flexGrow: s.counts[st],
+                  flexBasis: 0,
+                }}
+              />
+            ))}
+          </span>
+        </span>
+        {!vertical && <span className="w-10 shrink-0 text-right text-sm font-semibold text-stone-800">{s.total}</span>}
+      </button>
+    );
   };
 
   const every = series.length <= 7 ? 1 : series.length <= 14 ? 3 : 5;
@@ -86,13 +98,7 @@ export default function StackedBars<S extends string>(props: Props<S>) {
             <span className="absolute -top-1 right-0 text-xs text-stone-500">{max}</span>
             <div className="absolute inset-x-0 top-0 border-t border-dashed border-stone-200" />
             <div className="absolute inset-x-0 top-1/2 border-t border-dashed border-stone-200" />
-            <div className="relative flex h-full items-end gap-[2px] pr-6">
-              {series.map((s) => (
-                <div key={s.key} className="flex h-full min-w-0 flex-1 flex-col-reverse gap-[2px]">
-                  {segments(s)}
-                </div>
-              ))}
-            </div>
+            <div className="relative flex h-full gap-[2px] pr-6">{series.map(bar)}</div>
           </div>
           <div className="flex gap-[2px] overflow-hidden pr-6 pt-1">
             {series.map((s, i) => (
@@ -103,17 +109,7 @@ export default function StackedBars<S extends string>(props: Props<S>) {
           </div>
         </div>
       ) : (
-        <ul className="space-y-2">
-          {series.map((s) => (
-            <li key={s.key} className="grid grid-cols-[6.5rem_1fr_2.5rem] items-center gap-2">
-              <span className="truncate text-sm text-stone-700" title={s.label}>
-                {s.label}
-              </span>
-              <div className="flex h-8 gap-[2px]">{segments(s)}</div>
-              <span className="text-right text-sm font-semibold text-stone-800">{s.total}</span>
-            </li>
-          ))}
-        </ul>
+        <div className="space-y-1">{series.map(bar)}</div>
       )}
     </figure>
   );
