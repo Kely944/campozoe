@@ -60,10 +60,10 @@ export default function DashboardSection(props: Props) {
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {statuses.map((s) => (
           <div key={s} className="card p-3">
-            <p className="text-2xl font-bold text-stone-900">
+            <p className="text-2xl font-bold text-stone-900 dark:text-stone-100">
               {s === percentOf && total ? `${Math.round((summary.totals[s] / total) * 100)}%` : summary.totals[s]}
             </p>
-            <p className="flex items-center gap-2 text-sm text-stone-600">
+            <p className="flex items-center gap-2 text-sm text-stone-600 dark:text-stone-400">
               <span className="size-3 shrink-0 rounded-sm" style={{ background: colors[s] }} aria-hidden />
               {statusLabels[s]}
               {s === percentOf && total ? ` (${summary.totals[s]})` : ""}
@@ -72,19 +72,19 @@ export default function DashboardSection(props: Props) {
         ))}
         {tiles.map((t) => (
           <div key={t.label} className="card p-3">
-            <p className="text-2xl font-bold text-stone-900">{t.value}</p>
-            <p className="text-sm text-stone-600">{t.label}</p>
+            <p className="text-2xl font-bold text-stone-900 dark:text-stone-100">{t.value}</p>
+            <p className="text-sm text-stone-600 dark:text-stone-400">{t.label}</p>
           </div>
         ))}
       </div>
 
       {total === 0 ? (
-        <p className="card text-stone-500">{emptyText}</p>
+        <p className="card text-stone-500 dark:text-stone-400">{emptyText}</p>
       ) : (
         <div className="card space-y-6">
           <div className="space-y-1">
-            <p className="text-xs text-stone-500">Toca un estado para ver solo ese:</p>
-            <ul className="flex flex-wrap gap-2 text-sm text-stone-700" aria-label="Leyenda">
+            <p className="text-xs text-stone-500 dark:text-stone-400">Toca un estado para ver solo ese:</p>
+            <ul className="flex flex-wrap gap-2 text-sm text-stone-700 dark:text-stone-300" aria-label="Leyenda">
               {statuses.map((s) => (
                 <li key={s}>
                   <button
@@ -92,7 +92,7 @@ export default function DashboardSection(props: Props) {
                     aria-pressed={status === s}
                     onClick={() => setStatus(status === s ? null : s)}
                     className={`flex min-h-11 items-center gap-2 rounded-lg border px-3 ${
-                      status === s ? "border-stone-800 bg-stone-100 font-semibold" : "border-stone-200"
+                      status === s ? "border-stone-800 dark:border-stone-300 bg-stone-100 dark:bg-stone-800 font-semibold" : "border-stone-200 dark:border-stone-800"
                     }`}
                   >
                     <span className="size-3 rounded-sm" style={{ background: colors[s] }} aria-hidden />
@@ -110,11 +110,11 @@ export default function DashboardSection(props: Props) {
       <div ref={listRef} className="scroll-mt-4 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="font-semibold">
-            Detalle <span className="font-normal text-stone-500">({filtered.length})</span>
+            Detalle <span className="font-normal text-stone-500 dark:text-stone-400">({filtered.length})</span>
           </h3>
           {filterLabel && (
             <div className="flex items-center gap-2">
-              <span className="rounded-lg bg-stone-200 px-3 py-1 text-sm font-semibold">{filterLabel}</span>
+              <span className="rounded-lg bg-stone-200 dark:bg-stone-700 px-3 py-1 text-sm font-semibold">{filterLabel}</span>
               <button type="button" className="btn-secondary" onClick={clear}>
                 Ver todo
               </button>
@@ -122,7 +122,7 @@ export default function DashboardSection(props: Props) {
           )}
         </div>
         {filtered.length === 0 ? (
-          <p className="text-stone-500">Nada que mostrar.</p>
+          <p className="text-stone-500 dark:text-stone-400">Nada que mostrar.</p>
         ) : (
           <ul className="space-y-2">
             {filtered.slice(0, MAX_ROWS).map((r) => (
@@ -134,8 +134,8 @@ export default function DashboardSection(props: Props) {
                   </p>
                   {r.cells.slice(1).map((c, i) =>
                     c ? (
-                      <p key={i} className="break-words text-sm text-stone-600">
-                        <span className="text-stone-500">{columns[i + 1]}:</span> {c}
+                      <p key={i} className="break-words text-sm text-stone-600 dark:text-stone-400">
+                        <span className="text-stone-500 dark:text-stone-400">{columns[i + 1]}:</span> {c}
                       </p>
                     ) : null,
                   )}
@@ -145,7 +145,7 @@ export default function DashboardSection(props: Props) {
           </ul>
         )}
         {filtered.length > MAX_ROWS && (
-          <p className="text-sm text-stone-500">
+          <p className="text-sm text-stone-500 dark:text-stone-400">
             Mostrando {MAX_ROWS} de {filtered.length}. Toca una barra para ver menos filas.
           </p>
         )}

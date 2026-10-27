@@ -51,19 +51,19 @@ export default async function TodayPage() {
     const isOverdue = r.status === "pending" && new Date(r.due_at) < now;
     const mine = ob?.responsible_id === user.id;
     return (
-      <li key={r.id} className={`card ${isOverdue ? "border-red-300 bg-red-50" : ""}`}>
+      <li key={r.id} className={`card ${isOverdue ? "border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/40" : ""}`}>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="font-semibold leading-snug">
-              {ob?.priority === "alta" && <span className="mr-2 rounded-md bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">IMPORTANTE</span>}
+              {ob?.priority === "alta" && <span className="mr-2 rounded-md bg-amber-100 dark:bg-amber-900/40 px-2 py-0.5 text-xs font-bold text-amber-800 dark:text-amber-300">IMPORTANTE</span>}
               {ob?.title}
             </p>
-            <p className={`text-sm ${isOverdue ? "font-semibold text-red-700" : "text-stone-600"}`}>
+            <p className={`text-sm ${isOverdue ? "font-semibold text-red-700 dark:text-red-400" : "text-stone-600 dark:text-stone-400"}`}>
               {r.status === "done"
                 ? `Hecha por ${names.get(r.done_by ?? "") ?? "alguien"}`
                 : `${formatDue(new Date(r.due_at))} · ${relative(new Date(r.due_at), now)}`}
             </p>
-            <p className="text-sm text-stone-500">
+            <p className="text-sm text-stone-500 dark:text-stone-400">
               {mine ? "Te toca a ti" : `Responsable: ${names.get(ob?.responsible_id ?? "") ?? "sin asignar"}`}
             </p>
           </div>
@@ -85,7 +85,7 @@ export default async function TodayPage() {
     list.length || empty ? (
       <section className="mb-8">
         <h2 className="mb-3 text-lg font-bold">{title}</h2>
-        {list.length ? <ul className="space-y-3">{list.map(card)}</ul> : <p className="text-stone-500">{empty}</p>}
+        {list.length ? <ul className="space-y-3">{list.map(card)}</ul> : <p className="text-stone-500 dark:text-stone-400">{empty}</p>}
       </section>
     ) : null;
 

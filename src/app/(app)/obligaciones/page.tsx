@@ -39,12 +39,12 @@ export default async function ObligationsPage() {
           <li key={o.id}>
             <Link href={isAdmin ? `/obligaciones/${o.id}` : "#"} className={`card block ${o.active ? "" : "opacity-50"}`}>
               <p className="font-semibold">
-                {o.priority === "alta" && <span className="mr-2 rounded-md bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">IMPORTANTE</span>}
+                {o.priority === "alta" && <span className="mr-2 rounded-md bg-amber-100 dark:bg-amber-900/40 px-2 py-0.5 text-xs font-bold text-amber-800 dark:text-amber-300">IMPORTANTE</span>}
                 {o.title}
                 {!o.active && " (pausada)"}
               </p>
-              <p className="text-sm text-stone-600">{FREQUENCY_LABELS[o.frequency]} · {when(o)}</p>
-              <p className="text-sm text-stone-500">
+              <p className="text-sm text-stone-600 dark:text-stone-400">{FREQUENCY_LABELS[o.frequency]} · {when(o)}</p>
+              <p className="text-sm text-stone-500 dark:text-stone-400">
                 Avisos: {o.reminder_offsets_min.map(minutesLabel).join(", ")} antes ·{" "}
                 {names.get(o.responsible_id ?? "") ?? "Administradora"}
                 {o.backup_id && ` (respaldo: ${names.get(o.backup_id)})`}
@@ -53,7 +53,7 @@ export default async function ObligationsPage() {
           </li>
         ))}
       </ul>
-      {!obligations?.length && <p className="text-stone-500">Todavía no hay tareas.</p>}
+      {!obligations?.length && <p className="text-stone-500 dark:text-stone-400">Todavía no hay tareas.</p>}
     </main>
   );
 }

@@ -45,7 +45,7 @@ export default function ObligationForm({ action, obligation: o, dueLocal, people
         <legend className="px-1 font-bold">¿Cuándo vence?</legend>
         <div className="grid grid-cols-2 gap-2">
           {(Object.keys(FREQUENCY_LABELS) as Frequency[]).map((f) => (
-            <label key={f} className={`btn-secondary cursor-pointer ${frequency === f ? "border-green-700 bg-green-50 text-green-900" : ""}`}>
+            <label key={f} className={`btn-secondary cursor-pointer ${frequency === f ? "border-green-700 bg-green-50 dark:bg-green-950/60 text-green-900 dark:text-green-200" : ""}`}>
               <input type="radio" name="frequency" value={f} checked={frequency === f} onChange={() => setFrequency(f)} className="sr-only" />
               {FREQUENCY_LABELS[f]}
             </label>
@@ -69,7 +69,7 @@ export default function ObligationForm({ action, obligation: o, dueLocal, people
             <span className="label">{frequency === "daily" ? "Días (vacío = todos)" : "Días de la semana"}</span>
             <div className="grid grid-cols-7 gap-1">
               {WEEKDAY_LABELS.map((label, i) => (
-                <label key={i} className="flex cursor-pointer flex-col items-center gap-1 rounded-lg border border-stone-200 bg-white py-2 text-xs has-[:checked]:border-green-700 has-[:checked]:bg-green-50">
+                <label key={i} className="flex cursor-pointer flex-col items-center gap-1 rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 py-2 text-xs has-[:checked]:border-green-700 has-[:checked]:bg-green-50 dark:has-[:checked]:bg-green-950/60">
                   <input type="checkbox" name="weekdays" value={i} defaultChecked={o?.weekdays?.includes(i)} className="size-5 accent-green-700" />
                   {label}
                 </label>
@@ -90,7 +90,7 @@ export default function ObligationForm({ action, obligation: o, dueLocal, people
         <legend className="px-1 font-bold">Avisos por WhatsApp</legend>
         <div className="grid grid-cols-2 gap-2">
           {OFFSET_OPTIONS.map((opt) => (
-            <label key={opt.value} className="flex cursor-pointer items-center gap-2 rounded-lg border border-stone-200 px-3 py-2 has-[:checked]:border-green-700 has-[:checked]:bg-green-50">
+            <label key={opt.value} className="flex cursor-pointer items-center gap-2 rounded-lg border border-stone-200 dark:border-stone-800 px-3 py-2 has-[:checked]:border-green-700 has-[:checked]:bg-green-50 dark:has-[:checked]:bg-green-950/60">
               <input type="checkbox" name="offsets" value={opt.value} defaultChecked={offsets.includes(opt.value)} className="size-5 accent-green-700" />
               {opt.label}
             </label>
@@ -145,7 +145,7 @@ export default function ObligationForm({ action, obligation: o, dueLocal, people
         </label>
       </div>
 
-      {state.error && <p className="rounded-xl bg-red-50 px-4 py-3 text-red-800">{state.error}</p>}
+      {state.error && <p className="rounded-xl bg-red-50 dark:bg-red-950/40 px-4 py-3 text-red-800 dark:text-red-300">{state.error}</p>}
       <button className="btn-primary w-full" disabled={pending}>{pending ? "Guardando…" : "Guardar"}</button>
     </form>
   );

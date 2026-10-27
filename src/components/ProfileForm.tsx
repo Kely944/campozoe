@@ -29,7 +29,7 @@ export default function ProfileForm({ action, profile: p, editable }: Props) {
           <option value="operativo">Operativo</option>
         </select>
       </div>
-      {state.error && <p className="rounded-xl bg-red-50 px-4 py-3 text-red-800">{state.error}</p>}
+      {state.error && <p className="rounded-xl bg-red-50 dark:bg-red-950/40 px-4 py-3 text-red-800 dark:text-red-300">{state.error}</p>}
       {editable && <button className="btn-primary w-full" disabled={pending}>{pending ? "Guardando…" : "Guardar"}</button>}
     </form>
   );

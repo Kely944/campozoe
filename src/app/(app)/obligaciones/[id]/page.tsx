@@ -27,7 +27,7 @@ export default async function EditObligationPage({ params }: { params: Promise<{
         people={people ?? []}
       />
       <form action={deleteObligation.bind(null, id)} className="mt-8">
-        <button className="btn-secondary w-full text-red-700">Eliminar tarea</button>
+        <button className="btn-secondary w-full text-red-700 dark:text-red-400">Eliminar tarea</button>
       </form>
     </main>
   );

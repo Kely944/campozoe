@@ -50,13 +50,13 @@ export default function StackedBars<S extends string>(props: Props<S>) {
         onMouseLeave={() => setHover(null)}
         onFocus={() => setHover(describe(s))}
         onBlur={() => setHover(null)}
-        className={`flex min-w-0 outline-offset-2 focus-visible:outline-2 focus-visible:outline-stone-800 ${
+        className={`flex min-w-0 outline-offset-2 focus-visible:outline-2 focus-visible:outline-stone-800 dark:focus-visible:outline-stone-200 ${
           vertical ? "h-full flex-1 flex-col-reverse" : "h-11 w-full items-center gap-2 text-left"
-        } ${isSelected ? "rounded-md bg-stone-100" : ""}`}
+        } ${isSelected ? "rounded-md bg-stone-100 dark:bg-stone-800" : ""}`}
         style={{ opacity: dimBar ? 0.35 : 1 }}
       >
         {!vertical && (
-          <span className="w-[6.5rem] shrink-0 truncate text-sm text-stone-700" title={s.label}>
+          <span className="w-[6.5rem] shrink-0 truncate text-sm text-stone-700 dark:text-stone-300" title={s.label}>
             {s.label}
           </span>
         )}
@@ -79,7 +79,7 @@ export default function StackedBars<S extends string>(props: Props<S>) {
             ))}
           </span>
         </span>
-        {!vertical && <span className="w-10 shrink-0 text-right text-sm font-semibold text-stone-800">{s.total}</span>}
+        {!vertical && <span className="w-10 shrink-0 text-right text-sm font-semibold text-stone-800 dark:text-stone-200">{s.total}</span>}
       </button>
     );
   };
@@ -88,21 +88,21 @@ export default function StackedBars<S extends string>(props: Props<S>) {
 
   return (
     <figure className="space-y-2">
-      <figcaption className="text-sm font-semibold text-stone-700">{title}</figcaption>
-      <p className="min-h-5 text-sm text-stone-600" aria-live="polite">
+      <figcaption className="text-sm font-semibold text-stone-700 dark:text-stone-300">{title}</figcaption>
+      <p className="min-h-5 text-sm text-stone-600 dark:text-stone-400" aria-live="polite">
         {tooltip ?? "Toca una barra para ver el detalle."}
       </p>
       {vertical ? (
         <div>
-          <div className="relative h-40 border-b border-stone-300">
-            <span className="absolute -top-1 right-0 text-xs text-stone-500">{max}</span>
-            <div className="absolute inset-x-0 top-0 border-t border-dashed border-stone-200" />
-            <div className="absolute inset-x-0 top-1/2 border-t border-dashed border-stone-200" />
+          <div className="relative h-40 border-b border-stone-300 dark:border-stone-700">
+            <span className="absolute -top-1 right-0 text-xs text-stone-500 dark:text-stone-400">{max}</span>
+            <div className="absolute inset-x-0 top-0 border-t border-dashed border-stone-200 dark:border-stone-800" />
+            <div className="absolute inset-x-0 top-1/2 border-t border-dashed border-stone-200 dark:border-stone-800" />
             <div className="relative flex h-full gap-[2px] pr-6">{series.map(bar)}</div>
           </div>
           <div className="flex gap-[2px] overflow-hidden pr-6 pt-1">
             {series.map((s, i) => (
-              <span key={s.key} className="min-w-0 flex-1 overflow-visible whitespace-nowrap text-left text-xs text-stone-500">
+              <span key={s.key} className="min-w-0 flex-1 overflow-visible whitespace-nowrap text-left text-xs text-stone-500 dark:text-stone-400">
                 {i % every === 0 ? s.label : ""}
               </span>
             ))}

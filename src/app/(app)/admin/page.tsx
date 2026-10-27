@@ -142,15 +142,15 @@ async function attempt<T>(fn: () => Promise<T>): Promise<T | null> {
 function MissingPhonesNotice({ missing }: { missing: MissingPhones }) {
   if (!missing.people.length && !missing.tasks.length) return null;
   return (
-    <div className="card space-y-2 border-red-200 bg-red-50">
-      <h3 className="font-semibold text-red-900">Sin WhatsApp: estos avisos no pueden llegar</h3>
+    <div className="card space-y-2 border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40">
+      <h3 className="font-semibold text-red-900 dark:text-red-200">Sin WhatsApp: estos avisos no pueden llegar</h3>
       {missing.people.length > 0 && (
-        <p className="text-sm text-red-900">
+        <p className="text-sm text-red-900 dark:text-red-200">
           Personas sin número: {missing.people.map((p) => p.name).join(", ")}. Cárgalo en{" "}
           <Link href="/equipo" className="underline">Equipo</Link>.
         </p>
       )}
-      <ul className="space-y-1 text-sm text-red-900">
+      <ul className="space-y-1 text-sm text-red-900 dark:text-red-200">
         {missing.tasks.map((t) => (
           <li key={t.id} className="break-words">
             <span className="font-semibold">{t.title}</span>: {t.who.join(", ")}
@@ -165,7 +165,7 @@ function LoadError({ title }: { title: string }) {
   return (
     <section className="mb-10">
       <h2 className="mb-3 text-lg font-bold">{title}</h2>
-      <p className="card text-red-800">No se pudo cargar. Recarga la página.</p>
+      <p className="card text-red-800 dark:text-red-300">No se pudo cargar. Recarga la página.</p>
     </section>
   );
 }
@@ -200,7 +200,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
             key={p}
             href={`/admin?p=${p}`}
             aria-current={p === period ? "page" : undefined}
-            className={`btn-secondary ${p === period ? "border-green-700 bg-green-50 text-green-900" : ""}`}
+            className={`btn-secondary ${p === period ? "border-green-700 bg-green-50 dark:bg-green-950/60 text-green-900 dark:text-green-200" : ""}`}
           >
             {p} días
           </Link>
