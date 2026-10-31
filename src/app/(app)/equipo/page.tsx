@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export default async function TeamPage() {
   const { supabase, isAdmin } = await requireProfile();
-  const { data: people } = await supabase.from("profiles").select("id, full_name, phone, role").order("full_name");
+  const { data: people } = await supabase.from("profiles").select("id, full_name, phone, role, email").order("full_name");
 
   return (
     <main>

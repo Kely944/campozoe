@@ -82,12 +82,12 @@ Auditoría inicial: 31-oct-2026, rama `noche-completar`. Prioridad: **P0** bloqu
 |---|---|---|---|---|---|
 | RNF-01 | Celular primero; usable en computadora | REQ | Parcial | Tailwind, `max-w-2xl`; nav de 4 botones no escala a más módulos | Fase 3 (UI) |
 | RNF-02 | Uso simple: botones grandes, pocos pasos, español, sin términos técnicos | REQ | Parcial | `.btn` min-h-12; algunos textos técnicos ("Supabase (Authentication > Users)" en Equipo) | Fase 3 (UI) |
-| RNF-03 | WhatsApp como canal principal; correo como alternativa | REQ; COS "Integración WhatsApp Cloud API y correo alternativo" | Parcial | WhatsApp hecho; correo falta | — |
+| RNF-03 | WhatsApp como canal principal; correo como alternativa | REQ; COS "Integración WhatsApp Cloud API y correo alternativo" | Hecho | `lib/email.ts` (API de Resend por `fetch`, simulado sin credenciales); `runReminders` usa correo si no hay teléfono o si WhatsApp falla; migración 0012 (`profiles.email`, `notifications.channel`); correo editable en Equipo | `reminders.test.ts` "correo como alternativa" (2 tests); cron local con Majo sin teléfono → `[Correo simulado] a majo@prueba.local: Recordatorio: Prueba correo`, aviso guardado con `channel=email` |
 | RNF-04 | Inicio de sesión por usuario; solo Majo ve montos de préstamos y pagos | REQ | Hecho | Login Supabase; RLS `payments`/`cheques` solo admin (0007); `/pagos` usa `requireAdmin`; los avisos no llevan monto | psql como Beto: `select count(*) from payments` = 0 e insert en cheques rechazado por RLS; Playwright: Beto en `/pagos` → redirigido a `/` |
 | RNF-05 | Zona horaria America/Guayaquil y montos en USD | REQ | Hecho | `lib/time.ts` (UTC-5 fijo, `localDate`, `formatUSD`) | `time.test.ts`, `obligation-form.test.ts` "convierte la hora local de Ecuador" |
 | RNF-06 | Respaldo diario de los datos; no compartir datos financieros con terceros | REQ; COS Mantenimiento "Script en GitHub Actions" | Falta | — | — |
 | RNF-07 | Costo mensual bajo | REQ | No aplica | Decisión de infraestructura (ver DECISIONES.md) | — |
-| RNF-08 | Avisos puntuales | REQ | Parcial | `cron.sql` cada 5 min + claim de slot | Falta probar ciclo real con Supabase local |
+| RNF-08 | Avisos puntuales | REQ | Hecho | `cron.sql` cada 5 min (pg_cron) + reserva de slot antes de enviar + reintento si falla | Cron local (`/api/cron/reminders`): recordatorios y "VENCIDA" simulados en el minuto; tests de `planNotifications` y `runReminders`. pg_cron de producción sin probar (BLOQUEOS.md) |
 | SEC-1 | Registro público deshabilitado | CLAUDE.md | Hecho | `supabase/config.toml` `enable_signup = false` | Revisado en config |
 
 ## Cierre (COS filas "Cierre")

@@ -5,6 +5,7 @@ export interface Profile {
   full_name: string;
   phone: string | null;
   role: "admin" | "operativo";
+  email?: string | null; // RNF-03: correo alternativo
 }
 
 export interface Obligation {

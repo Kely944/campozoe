@@ -63,16 +63,19 @@ export async function deleteObligation(id: string) {
 export async function updateProfile(id: string, _: FormState, formData: FormData): Promise<FormState> {
   const phone = String(formData.get("phone") ?? "").replace(/\D/g, "");
   if (phone && !/^593\d{9}$/.test(phone)) return { error: "Número inválido. Usa el formato 593991234567." };
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "Correo inválido." };
   const supabase = await createClient();
   const { error } = await supabase
     .from("profiles")
     .update({
       full_name: String(formData.get("full_name") ?? "").trim(),
       phone: phone || null,
+      email: email || null,
       role: formData.get("role") === "admin" ? "admin" : "operativo",
     })
     .eq("id", id);
   if (error) return { error: "No se pudo guardar. Solo la administradora puede editar el equipo." };
   revalidatePath("/equipo");
-  return {};
+  return { ok: "Guardado." };
 }

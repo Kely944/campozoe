@@ -8,3 +8,10 @@ Nada de esto impide usar la app; son puntos que no se pueden cerrar sin Majo, Su
 2. **RF-29: días de cocción.** El requerimiento dice "lunes para el martes y jueves para el viernes", pero Favorita recibe miércoles y viernes. Se crearon las tareas tal como dice el requerimiento (lunes y jueves, 08:00, "a confirmar") y el plan de grano se muestra por día de entrega (miércoles/viernes). Ajustar la hora y los días en Tareas cuando Majo confirme.
 3. **RF-32: formato real del facturador.** No se tuvo un Excel exportado de "Visual Fact" (nombre a confirmar). El importador reconoce las columnas por el título (Fecha/Fecha emisión, Cliente/Razón social, Producto/Descripción/Ítem, Cantidad, Total/Valor, Factura/Número/Recibo; para cuentas por cobrar: Cliente y Saldo). Solo lee .xlsx y .csv: si el facturador exporta .xls antiguo, hay que abrirlo en Excel y "Guardar como" .xlsx. **Probar con un archivo real** de ventas, productos y cuentas por cobrar, y con el Excel del historial 2019–2023.
 4. **RF-33: la sugerencia de pedido supone** que la entrega del sábado cubre sábado y domingo y que el peso de la bandeja está en el nombre del producto ("150 G", "90 g", "1 kg"). Revisar con el historial real.
+
+## Requiere servicios reales (no se tocaron en esta rama)
+
+5. **WhatsApp real:** todo se probó en modo simulado (`[WhatsApp simulado]`). Falta: plantilla `recordatorio_tarea` aprobada con los botones "Hecho" y "Recordar en 1 h", webhook con firma real y prueba de los dos botones desde un celular.
+6. **Correo real (RNF-03):** probado en modo simulado (`[Correo simulado]`). Para activarlo: cuenta en resend.com, dominio verificado, `RESEND_API_KEY` y `EMAIL_FROM` en Vercel.
+7. **Cron en producción (RNF-08):** `supabase/cron.sql` con `pg_cron` + `pg_net` cada 5 minutos no se probó contra Vercel. Revisar que lleguen los avisos y que no se dupliquen.
+8. **Migraciones 0005 a 0012** solo se aplicaron en Supabase local. En producción se ejecutan en orden en el SQL Editor (ver README).

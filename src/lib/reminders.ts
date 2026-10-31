@@ -3,7 +3,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { generateOccurrences, planNotifications, type NotificationKind } from "./schedule";
 import { DAY, formatDue } from "./time";
 import type { Obligation, Occurrence, Profile } from "./types";
-import { sendReminder } from "./whatsapp";
+import { sendReminderEmail } from "./email";
+import { sendReminder, type SendResult } from "./whatsapp";
 
 const HORIZON_DAYS = 14;
 
@@ -36,7 +37,7 @@ export interface RunSummary {
 export async function runReminders(db: SupabaseClient, now = new Date()): Promise<RunSummary> {
   const [{ data: obligations, error: e1 }, { data: profiles, error: e2 }] = await Promise.all([
     db.from("obligations").select("*").eq("active", true),
-    db.from("profiles").select("id, full_name, phone, role"),
+    db.from("profiles").select("id, full_name, phone, role, email"),
   ]);
   if (e1) throw e1;
   if (e2) throw e2;
@@ -84,7 +85,7 @@ export async function runReminders(db: SupabaseClient, now = new Date()): Promis
 
     for (const item of plan) {
       const person = people.get(item.recipientId);
-      if (!person?.phone) continue;
+      if (!person?.phone && !person?.email) continue;
 
       // Reserva el slot antes de enviar: si otro proceso ya lo tomó, no se duplica.
       const { data: claimed, error: claimError } = await db
@@ -95,16 +96,22 @@ export async function runReminders(db: SupabaseClient, now = new Date()): Promis
       if (claimError || !claimed) continue;
 
       try {
-        const result = await sendReminder({
-          to: person.phone,
-          title: ob.title,
-          dueText: formatDue(new Date(occ.due_at)),
-          headline: HEADLINES[item.kind],
-          occurrenceId: occ.id,
-        });
+        const msg = { title: ob.title, dueText: formatDue(new Date(occ.due_at)), headline: HEADLINES[item.kind] };
+        // RNF-03: WhatsApp primero; correo si no hay teléfono o si WhatsApp falla.
+        let result: SendResult;
+        let channel: "whatsapp" | "email" = "whatsapp";
+        try {
+          if (!person.phone) throw new Error("Sin teléfono");
+          result = await sendReminder({ ...msg, to: person.phone, occurrenceId: occ.id });
+        } catch (err) {
+          if (!person.email) throw err;
+          if (person.phone) console.error("WhatsApp falló, se envía por correo", err);
+          channel = "email";
+          result = await sendReminderEmail({ ...msg, to: person.email });
+        }
         await db
           .from("notifications")
-          .update({ status: result.status, provider_message_id: result.messageId })
+          .update({ status: result.status, provider_message_id: result.messageId, channel })
           .eq("id", claimed.id);
         summary[result.status === "sent" ? "sent" : "simulated"]++;
       } catch (err) {

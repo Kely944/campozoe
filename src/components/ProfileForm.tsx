@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import type { FormState } from "@/app/actions";
+import FormMessage from "@/components/FormMessage";
 import type { Profile } from "@/lib/types";
 
 interface Props {
@@ -23,13 +24,17 @@ export default function ProfileForm({ action, profile: p, editable }: Props) {
         <input className="field" id={`phone-${p.id}`} name="phone" inputMode="numeric" placeholder="593991234567" defaultValue={p.phone ?? ""} disabled={!editable} />
       </div>
       <div>
+        <label className="label" htmlFor={`email-${p.id}`}>Correo (si no llega el WhatsApp)</label>
+        <input className="field" id={`email-${p.id}`} name="email" type="email" inputMode="email" defaultValue={p.email ?? ""} disabled={!editable} />
+      </div>
+      <div>
         <label className="label" htmlFor={`role-${p.id}`}>Rol</label>
         <select className="field" id={`role-${p.id}`} name="role" defaultValue={p.role} disabled={!editable}>
           <option value="admin">Administradora</option>
           <option value="operativo">Operativo</option>
         </select>
       </div>
-      {state.error && <p className="rounded-xl bg-red-50 dark:bg-red-950/40 px-4 py-3 text-red-800 dark:text-red-300">{state.error}</p>}
+      <FormMessage state={state} />
       {editable && <button className="btn-primary w-full" disabled={pending}>{pending ? "Guardando…" : "Guardar"}</button>}
     </form>
   );

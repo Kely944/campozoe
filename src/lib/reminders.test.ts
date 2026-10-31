@@ -6,6 +6,8 @@ vi.mock("server-only", () => ({}));
 vi.mock("./whatsapp", () => ({
   sendReminder: vi.fn().mockRejectedValue(new Error("WhatsApp 400: número inválido")),
 }));
+const sendReminderEmail = vi.fn().mockResolvedValue({ status: "simulated", messageId: null });
+vi.mock("./email", () => ({ sendReminderEmail }));
 
 const { runReminders } = await import("./reminders");
 
@@ -110,5 +112,31 @@ describe("runReminders: fallos de envío", () => {
       expect.objectContaining({ table: "notifications", op: "delete", filters: [["id", "n1"]] }),
     );
     errorSpy.mockRestore();
+  });
+});
+
+describe("runReminders: correo como alternativa (RNF-03)", () => {
+  it("si WhatsApp falla y la persona tiene correo, se envía por correo", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    sendReminderEmail.mockClear();
+    const withEmail = { ...data, profiles: [{ ...data.profiles[0], email: "majo@ejemplo.com" }] };
+    const { db, calls } = fakeDb(withEmail);
+    const summary = await runReminders(db, now);
+
+    expect(sendReminderEmail).toHaveBeenCalledWith(expect.objectContaining({ to: "majo@ejemplo.com", title: "Pedido de champiñón" }));
+    expect(calls).toContainEqual(
+      expect.objectContaining({ table: "notifications", op: "update", payload: { status: "simulated", provider_message_id: null, channel: "email" } }),
+    );
+    expect(summary).toMatchObject({ simulated: 1, failed: [] });
+    errorSpy.mockRestore();
+  });
+
+  it("sin teléfono pero con correo, avisa por correo", async () => {
+    sendReminderEmail.mockClear();
+    const noPhone = { ...data, profiles: [{ ...data.profiles[0], phone: null, email: "majo@ejemplo.com" }] };
+    const { db } = fakeDb(noPhone);
+    const summary = await runReminders(db, now);
+    expect(sendReminderEmail).toHaveBeenCalledTimes(1);
+    expect(summary.failed).toEqual([]);
   });
 });
