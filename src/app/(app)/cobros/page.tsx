@@ -19,7 +19,7 @@ interface Watch {
 export default async function CollectionsPage() {
   const { supabase, user, isAdmin } = await requireProfile();
   const today = localDate(new Date());
-  const [{ data: sales }, { data: settings }, { data: watches }] = await Promise.all([
+  const [{ data: sales }, { data: settings }, { data: watches }, { data: receivables }] = await Promise.all([
     supabase
       .from("credit_sales")
       .select("id, customer, amount, sold_on, paid_on, seller_id, profiles!credit_sales_seller_id_fkey(full_name)")
@@ -27,7 +27,18 @@ export default async function CollectionsPage() {
       .order("sold_on"),
     supabase.from("app_settings").select("credit_days").single(),
     isAdmin ? supabase.from("credit_note_watch").select("*").is("resolved_at", null).order("issued_on") : Promise.resolve({ data: [] }),
+    isAdmin ? supabase.from("receivables").select("customer, balance, issued_on") : Promise.resolve({ data: [] }),
   ]);
+  // Cuentas por cobrar importadas del facturador (RF-32), por cliente.
+  const billed = balancesByCustomer(
+    ((receivables ?? []) as { customer: string; balance: number; issued_on: string | null }[]).map((r, i) => ({
+      id: String(i),
+      customer: r.customer,
+      amount: Number(r.balance),
+      sold_on: r.issued_on ?? today,
+      paid_on: null,
+    })),
+  );
   const pending = (sales ?? []) as unknown as Sale[];
   const creditDays = settings?.credit_days ?? 14;
   const balances = balancesByCustomer(pending);
@@ -165,6 +176,24 @@ export default async function CollectionsPage() {
               <p className="text-stone-500 dark:text-stone-400">No hay facturas vigiladas.</p>
             )}
           </section>
+
+          {billed.length > 0 && (
+            <section className="mb-8">
+              <h2 className="mb-1 text-lg font-bold">Por cobrar según el facturador</h2>
+              <p className="mb-3 text-sm text-stone-600 dark:text-stone-400">Del último Excel importado en Reportes.</p>
+              <ol className="card divide-y divide-stone-200 py-1 dark:divide-stone-800">
+                {billed.map((b) => (
+                  <li key={b.customer} className="flex items-center justify-between gap-3 py-2">
+                    <div className="min-w-0">
+                      <p className="font-semibold">{b.customer}</p>
+                      <p className="text-sm text-stone-500 dark:text-stone-400">{b.count} {b.count === 1 ? "factura" : "facturas"} · desde {formatDate(b.oldest)}</p>
+                    </div>
+                    <span className="shrink-0 font-semibold tabular-nums">{formatUSD(b.total)}</span>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
 
           <section className="card">
             <h2 className="mb-3 font-bold">¿A los cuántos días avisar un cobro?</h2>

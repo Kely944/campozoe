@@ -1,6 +1,7 @@
 import { createSupplierOrder, deleteSupplierOrder } from "./actions";
 import SupplierOrderForm from "@/components/SupplierOrderForm";
 import { coversWeekend, historyBySupplier, type SupplierOrderRow } from "@/lib/pedidos";
+import { suggestCorchos, type SaleRow } from "@/lib/reportes";
 import { requireProfile } from "@/lib/session";
 import { DAY, addDays, formatDate, fromLocal, localDate, toLocal } from "@/lib/time";
 
@@ -30,6 +31,16 @@ export default async function OrdersPage() {
       .lt("due_at", new Date(startOfToday.getTime() + DAY).toISOString())
       .order("due_at"),
   ]);
+
+  // RF-33: sugerencia para mañana según lo vendido (ventas importadas; solo la administradora las ve).
+  const tomorrow = addDays(today, 1);
+  const { data: sales } = isAdmin
+    ? await supabase.from("sales").select("sold_on, customer, product, units, amount").gte("sold_on", addDays(today, -63)).ilike("product", "%champi%")
+    : { data: [] };
+  const sug = suggestCorchos((sales ?? []) as SaleRow[], tomorrow);
+  const suggestion = sug
+    ? `Sugerido para mañana: ${sug.corchos} ${sug.corchos === 1 ? "corcho" : "corchos"} (se vendieron ${sug.avgKg.toLocaleString("es-EC")} kg en promedio ese día, últimas ${sug.weeks} semanas).`
+    : null;
 
   type Row = SupplierOrderRow & { notes: string | null; created_by: string | null; profiles: { full_name: string } | null };
   const rows = (orders ?? []) as unknown as Row[];
@@ -64,7 +75,7 @@ export default async function OrdersPage() {
   return (
     <main>
       <h1 className="mb-4 text-2xl font-bold">Pedidos</h1>
-      <SupplierOrderForm action={createSupplierOrder} defaultDate={addDays(today, 1)} tasks={todayTasks} />
+      <SupplierOrderForm action={createSupplierOrder} defaultDate={tomorrow} tasks={todayTasks} suggestion={suggestion} />
 
       <section className="mt-8">
         <h2 className="mb-3 text-lg font-bold">Próximos</h2>

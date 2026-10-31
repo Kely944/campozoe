@@ -72,9 +72,9 @@ Auditoría inicial: 31-oct-2026, rama `noche-completar`. Prioridad: **P0** bloqu
 
 | # | Requerimiento | Fuente | Estado | Dónde está en el código | Cómo se verificó |
 |---|---|---|---|---|---|
-| RF-31 | Ventas de champiñón por periodo y cliente | REQ M7; TRA A3 15:00–17:00 | Falta | — | — |
-| RF-32 | Importar Excel del facturador (ventas, productos, cuentas por cobrar) e historial 2019–2023 | REQ M7; TRA A3 06:00–08:00 | Falta | — | — |
-| RF-33 | Sugerir cantidad de pedido según historial de ventas | REQ M7; TRA A3 20:00–21:00 | Falta | — | — |
+| RF-31 | Ventas de champiñón por periodo y cliente | REQ M7; TRA A3 15:00–17:00 | Hecho | `/reportes` (periodo, filtro de producto sin tildes, por mes y por cliente; `salesReport`) | `reportes.test.ts`; captura con 122 ventas importadas: 8.073 u., $11.355,50, por mes y por cliente |
+| RF-32 | Importar Excel del facturador (ventas, productos, cuentas por cobrar) e historial 2019–2023 | REQ M7; TRA A3 06:00–08:00 | Hecho | `/reportes` "Importar": `lib/hoja.ts` (lector .xlsx propio con `node:zlib` + CSV), `lib/importacion.ts` (columnas por nombre), tablas `sales`, `catalog_products`, `receivables` (0011); CxC se ven en Cobros | `importacion.test.ts` (xlsx real de prueba en `src/lib/fixtures`); Playwright: xlsx 2 filas, CSV 120 filas, reimportar → 0 nuevas, CxC 3 filas visibles en Cobros. Formato real del facturador sin confirmar (BLOQUEOS.md) |
+| RF-33 | Sugerir cantidad de pedido según historial de ventas | REQ M7; TRA A3 20:00–21:00 | Hecho | `/pedidos` (admin): `suggestCorchos` promedia kg vendidos el mismo día de la semana (8 semanas) y redondea a corchos de 14 kg | `reportes.test.ts` "sugerencia de pedido"; Playwright: "Sugerido para mañana: 2 corchos (22,4 kg…)" |
 
 ## No funcionales (REQ § Requerimientos no funcionales)
 
