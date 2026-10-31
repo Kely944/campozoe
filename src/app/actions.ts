@@ -9,6 +9,7 @@ import type { Obligation } from "@/lib/types";
 
 export interface FormState {
   error?: string;
+  ok?: string; // mensaje de confirmación
 }
 
 export async function signIn(_: FormState, formData: FormData): Promise<FormState> {

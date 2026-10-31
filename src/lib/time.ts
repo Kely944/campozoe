@@ -81,3 +81,39 @@ export function relative(due: Date, now: Date): string {
   }
   return diff >= 0 ? `en ${text}` : `hace ${text}`;
 }
+
+const pad2 = (n: number) => String(n).padStart(2, "0");
+
+/** Fecha local "YYYY-MM-DD" (Ecuador) de un instante. */
+export function localDate(date: Date): string {
+  const p = toLocal(date);
+  return `${p.year}-${pad2(p.month)}-${pad2(p.day)}`;
+}
+
+/** "2026-11-02" + n días -> "2026-11-04" (sin depender de la zona del servidor). */
+export function addDays(dateStr: string, days: number): string {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const t = new Date(Date.UTC(y, m - 1, d + days));
+  return `${t.getUTCFullYear()}-${pad2(t.getUTCMonth() + 1)}-${pad2(t.getUTCDate())}`;
+}
+
+/** Día de la semana de una fecha "YYYY-MM-DD" (0 = domingo). */
+export function weekdayOf(dateStr: string): number {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+}
+
+const dateFmt = new Intl.DateTimeFormat("es-EC", { timeZone: "UTC", weekday: "long", day: "numeric", month: "long" });
+
+/** "2026-11-02" -> "lunes, 2 de noviembre" */
+export function formatDate(dateStr: string): string {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return dateFmt.format(new Date(Date.UTC(y, m - 1, d)));
+}
+
+const usd = new Intl.NumberFormat("es-EC", { style: "currency", currency: "USD" });
+
+/** 1234.5 -> "$1.234,50" (RNF-05: montos en USD) */
+export function formatUSD(amount: number): string {
+  return usd.format(amount);
+}

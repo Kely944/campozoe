@@ -45,10 +45,10 @@ Auditoría inicial: 31-oct-2026, rama `noche-completar`. Prioridad: **P0** bloqu
 
 | # | Requerimiento | Fuente | Estado | Dónde está en el código | Cómo se verificó |
 |---|---|---|---|---|---|
-| RF-19 | Registrar pedido diario de champiñón en corchos de 14 kg, con aviso antes del corte 9:00 | REQ M4; TRA A1 00:00–01:00, 06:00 | Parcial | Aviso: `seed.sql`. Falta registrar el pedido | — |
-| RF-20 | Destacar el pedido que cubre fin de semana y lunes | REQ M4; TRA A1 01:00 | Parcial | Obligación "alta" en `seed.sql`; falta destacarlo en el registro de pedidos | — |
-| RF-21 | Pedido de etiquetas con corte 11:00 y frecuencia 1 o 2 veces por mes | REQ M4; TRA A1 11:00 | Parcial | Frecuencia mensual con segundo día opcional (migración 0005, `extra_day_of_month`); aviso en `seed.sql`. Falta registrar el pedido (M4) | `schedule.test.ts` "mensual dos veces", `obligation-form.test.ts` "segundo día" |
-| RF-22 | Historial de pedidos por proveedor | REQ M4 | Falta | — | — |
+| RF-19 | Registrar pedido diario de champiñón en corchos de 14 kg, con aviso antes del corte 9:00 | REQ M4; TRA A1 00:00–01:00, 06:00 | Hecho | `/pedidos` (migración 0006 `supplier_orders`, `lib/pedidos.ts`); aviso 9:00 en `seed.sql`; el pedido puede marcar hecha la tarea de hoy | `pedidos.test.ts`; Playwright: Beto registró 6 corchos y la tarea "Pedido diario de champiñón" quedó hecha (done_via app); RLS probada en BD local |
+| RF-20 | Destacar el pedido que cubre fin de semana y lunes | REQ M4; TRA A1 01:00 | Hecho | `coversWeekend` (entregas sáb/dom/lun): aviso ámbar en el formulario y etiqueta "FIN DE SEMANA"; obligación "alta" en `seed.sql` | `pedidos.test.ts` "coversWeekend"; captura 390 px |
+| RF-21 | Pedido de etiquetas con corte 11:00 y frecuencia 1 o 2 veces por mes | REQ M4; TRA A1 11:00 | Hecho | Aviso mensual con segundo día opcional (migración 0005); registro en `/pedidos` (proveedor "Etiquetas") | `schedule.test.ts` "mensual dos veces", `obligation-form.test.ts`, `pedidos.test.ts` |
+| RF-22 | Historial de pedidos por proveedor | REQ M4 | Hecho | `/pedidos` sección "Historial por proveedor" (`historyBySupplier`) | `pedidos.test.ts` "historyBySupplier"; captura con 2 proveedores |
 
 ## M5 Cuentas por cobrar informales (REQ § M5)
 
@@ -84,7 +84,7 @@ Auditoría inicial: 31-oct-2026, rama `noche-completar`. Prioridad: **P0** bloqu
 | RNF-02 | Uso simple: botones grandes, pocos pasos, español, sin términos técnicos | REQ | Parcial | `.btn` min-h-12; algunos textos técnicos ("Supabase (Authentication > Users)" en Equipo) | Fase 3 (UI) |
 | RNF-03 | WhatsApp como canal principal; correo como alternativa | REQ; COS "Integración WhatsApp Cloud API y correo alternativo" | Parcial | WhatsApp hecho; correo falta | — |
 | RNF-04 | Inicio de sesión por usuario; solo Majo ve montos de préstamos y pagos | REQ | Parcial | Login + RLS M1 hechos; montos: módulo M3 no existe aún | — |
-| RNF-05 | Zona horaria America/Guayaquil y montos en USD | REQ | Parcial | `lib/time.ts` (probado indirectamente); formato USD falta | `obligation-form.test.ts` "convierte la hora local de Ecuador" |
+| RNF-05 | Zona horaria America/Guayaquil y montos en USD | REQ | Hecho | `lib/time.ts` (UTC-5 fijo, `localDate`, `formatUSD`) | `time.test.ts`, `obligation-form.test.ts` "convierte la hora local de Ecuador" |
 | RNF-06 | Respaldo diario de los datos; no compartir datos financieros con terceros | REQ; COS Mantenimiento "Script en GitHub Actions" | Falta | — | — |
 | RNF-07 | Costo mensual bajo | REQ | No aplica | Decisión de infraestructura (ver DECISIONES.md) | — |
 | RNF-08 | Avisos puntuales | REQ | Parcial | `cron.sql` cada 5 min + claim de slot | Falta probar ciclo real con Supabase local |

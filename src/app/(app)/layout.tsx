@@ -3,6 +3,14 @@ import { signOut } from "../actions";
 import { requireProfile } from "@/lib/session";
 import ThemeToggle from "@/components/ThemeToggle";
 
+const NAV = [
+  { href: "/", label: "Hoy" },
+  { href: "/pedidos", label: "Pedidos" },
+  { href: "/obligaciones", label: "Tareas" },
+  { href: "/equipo", label: "Equipo" },
+  { href: "/admin", label: "Panel", admin: true },
+];
+
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const { profile, isAdmin } = await requireProfile();
   return (
@@ -16,11 +24,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </form>
         </div>
       </header>
-      <nav className={`mb-6 grid ${isAdmin ? "grid-cols-4" : "grid-cols-3"} gap-2 text-center text-sm font-semibold`}>
-        <Link href="/" className="rounded-xl bg-white dark:bg-stone-900 py-3 shadow-sm">Hoy</Link>
-        <Link href="/obligaciones" className="rounded-xl bg-white dark:bg-stone-900 py-3 shadow-sm">Tareas</Link>
-        <Link href="/equipo" className="rounded-xl bg-white dark:bg-stone-900 py-3 shadow-sm">Equipo</Link>
-        {isAdmin && <Link href="/admin" className="rounded-xl bg-white dark:bg-stone-900 py-3 shadow-sm">Panel</Link>}
+      <nav className="mb-6 flex gap-2 overflow-x-auto text-center text-sm font-semibold">
+        {NAV.filter((n) => isAdmin || !n.admin).map((n) => (
+          <Link key={n.href} href={n.href} className="shrink-0 rounded-xl bg-white px-4 py-3 shadow-sm dark:bg-stone-900">{n.label}</Link>
+        ))}
       </nav>
       {children}
     </div>
