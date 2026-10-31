@@ -1,4 +1,6 @@
 import Link from "next/link";
+import EmptyState from "@/components/EmptyState";
+import SubmitButton from "@/components/SubmitButton";
 import { createCheque, setChequeStatus } from "./actions";
 import ChequeForm from "@/components/ChequeForm";
 import { CHEQUE_STATUS, PAYMENT_KINDS, maskAccount, monthCalendar, type Cheque, type Payment } from "@/lib/pagos";
@@ -31,14 +33,14 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
   return (
     <main>
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Pagos</h1>
+        <h1 className="font-display text-3xl leading-tight font-semibold">Pagos</h1>
         <Link href="/pagos/nuevo" className="btn-primary">+ Nuevo</Link>
       </div>
 
       <section className="card mb-8">
         <div className="mb-3 flex items-center justify-between gap-2">
           <Link href={`/pagos?mes=${shiftMonth(year, month, -1)}`} className="btn-secondary min-w-12 px-3" aria-label="Mes anterior">‹</Link>
-          <h2 className="text-center text-lg font-bold capitalize">{MONTHS[month - 1]} {year}</h2>
+          <h2 className="text-center text-xl font-semibold capitalize">{MONTHS[month - 1]} {year}</h2>
           <Link href={`/pagos?mes=${shiftMonth(year, month, 1)}`} className="btn-secondary min-w-12 px-3" aria-label="Mes siguiente">›</Link>
         </div>
         <p className="mb-4 text-center text-stone-600 dark:text-stone-400">
@@ -64,7 +66,7 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
                   ))}
                 </ul>
               ) : (
-                <p className="py-2 text-sm text-stone-400 dark:text-stone-500">Sin pagos</p>
+                <p className="py-2 text-sm text-stone-400 dark:text-stone-400">Sin pagos</p>
               )}
             </li>
           ))}
@@ -72,7 +74,7 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
       </section>
 
       <section className="mb-8">
-        <h2 className="mb-3 text-lg font-bold">Préstamos y pagos fijos</h2>
+        <h2 className="mb-3 text-xl font-semibold">Préstamos y pagos fijos</h2>
         {pays.length ? (
           <ul className="space-y-3">
             {pays.map((p) => (
@@ -92,12 +94,12 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
             ))}
           </ul>
         ) : (
-          <p className="text-stone-500 dark:text-stone-400">Registra cada préstamo y pago fijo para recibir el aviso de transferencia.</p>
+          <EmptyState title="Registra cada préstamo y pago fijo para recibir el aviso de transferencia." />
         )}
       </section>
 
       <section>
-        <h2 className="mb-3 text-lg font-bold">Cheques</h2>
+        <h2 className="mb-3 text-xl font-semibold">Cheques</h2>
         <details className="card mb-4">
           <summary className="cursor-pointer font-semibold text-green-800 dark:text-green-400">+ Registrar cheque</summary>
           <ChequeForm action={createCheque} today={today} />
@@ -115,15 +117,15 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
                 </p>
                 {c.status === "emitido" && (
                   <div className="mt-3 flex gap-2">
-                    <form action={setChequeStatus.bind(null, c.id, "cobrado")}><button className="btn-secondary text-sm">Ya lo cobraron</button></form>
-                    <form action={setChequeStatus.bind(null, c.id, "anulado")}><button className="btn-secondary text-sm">Anular</button></form>
+                    <form action={setChequeStatus.bind(null, c.id, "cobrado")}><SubmitButton className="btn-secondary text-sm" pendingText="…">Ya lo cobraron</SubmitButton></form>
+                    <form action={setChequeStatus.bind(null, c.id, "anulado")}><SubmitButton className="btn-secondary text-sm" pendingText="…">Anular</SubmitButton></form>
                   </div>
                 )}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-stone-500 dark:text-stone-400">No hay cheques registrados.</p>
+          <EmptyState title="No hay cheques registrados." />
         )}
       </section>
     </main>

@@ -1,4 +1,6 @@
 import { createSupplierOrder, deleteSupplierOrder } from "./actions";
+import EmptyState from "@/components/EmptyState";
+import SubmitButton from "@/components/SubmitButton";
 import SupplierOrderForm from "@/components/SupplierOrderForm";
 import { coversWeekend, historyBySupplier, type SupplierOrderRow } from "@/lib/pedidos";
 import { suggestCorchos, type SaleRow } from "@/lib/reportes";
@@ -66,7 +68,7 @@ export default async function OrdersPage() {
       </div>
       {(r.created_by === user.id || isAdmin) && (
         <form action={deleteSupplierOrder.bind(null, r.id)}>
-          <button className="text-sm text-red-700 underline dark:text-red-400" aria-label={`Borrar pedido de ${r.supplier} del ${formatDate(r.for_date)}`}>Borrar</button>
+          <SubmitButton className="btn-danger min-h-11 px-3 text-sm" aria-label={`Borrar pedido de ${r.supplier} del ${formatDate(r.for_date)}`} pendingText="…">Borrar</SubmitButton>
         </form>
       )}
     </li>
@@ -74,11 +76,11 @@ export default async function OrdersPage() {
 
   return (
     <main>
-      <h1 className="mb-4 text-2xl font-bold">Pedidos</h1>
+      <h1 className="mb-6 font-display text-3xl leading-tight font-semibold">Pedidos</h1>
       <SupplierOrderForm action={createSupplierOrder} defaultDate={tomorrow} tasks={todayTasks} suggestion={suggestion} />
 
       <section className="mt-8">
-        <h2 className="mb-3 text-lg font-bold">Próximos</h2>
+        <h2 className="mb-3 text-xl font-semibold">Próximos</h2>
         {upcoming.length ? (
           <ul className="card divide-y divide-stone-200 py-1 dark:divide-stone-800">
             {upcoming.map((r) => (
@@ -89,12 +91,12 @@ export default async function OrdersPage() {
             ))}
           </ul>
         ) : (
-          <p className="text-stone-500 dark:text-stone-400">No hay pedidos registrados para hoy ni los próximos días.</p>
+          <EmptyState title="No hay pedidos registrados para hoy ni los próximos días." />
         )}
       </section>
 
       <section className="mt-8">
-        <h2 className="mb-3 text-lg font-bold">Historial por proveedor (últimos 90 días)</h2>
+        <h2 className="mb-3 text-xl font-semibold">Historial por proveedor (últimos 90 días)</h2>
         {history.length ? (
           <div className="space-y-3">
             {history.map((h) => (
@@ -110,7 +112,7 @@ export default async function OrdersPage() {
             ))}
           </div>
         ) : (
-          <p className="text-stone-500 dark:text-stone-400">Todavía no hay pedidos.</p>
+          <EmptyState title="Todavía no hay pedidos." />
         )}
       </section>
     </main>

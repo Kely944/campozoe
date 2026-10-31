@@ -1,5 +1,6 @@
 "use client";
 
+import EmptyState from "@/components/EmptyState";
 import { useRef, useState } from "react";
 import { filterDetail, type BarSelection, type Summary } from "@/lib/dashboard";
 import StackedBars from "./StackedBars";
@@ -55,7 +56,7 @@ export default function DashboardSection(props: Props) {
 
   return (
     <section className="mb-10 space-y-4">
-      <h2 className="text-lg font-bold">{title}</h2>
+      <h2 className="text-xl font-semibold">{title}</h2>
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {statuses.map((s) => (
@@ -122,7 +123,7 @@ export default function DashboardSection(props: Props) {
           )}
         </div>
         {filtered.length === 0 ? (
-          <p className="text-stone-500 dark:text-stone-400">Nada que mostrar.</p>
+          <EmptyState title="Nada que mostrar." />
         ) : (
           <ul className="space-y-2">
             {filtered.slice(0, MAX_ROWS).map((r) => (

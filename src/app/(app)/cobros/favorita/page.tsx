@@ -1,4 +1,5 @@
 import { saveFavoritaPayment } from "../actions";
+import EmptyState from "@/components/EmptyState";
 import ReconcileForm from "@/components/ReconcileForm";
 import { requireAdmin } from "@/lib/session";
 import { formatDate, formatUSD, localDate } from "@/lib/time";
@@ -34,20 +35,20 @@ export default async function FavoritaPaymentsPage() {
 
   return (
     <main>
-      <h1 className="mb-1 text-2xl font-bold">Pagos de Favorita</h1>
+      <h1 className="mb-6 font-display text-3xl leading-tight font-semibold">Pagos de Favorita</h1>
       <p className="mb-4 text-stone-600 dark:text-stone-400">Facturas por cobrar: <strong className="text-stone-900 dark:text-stone-100">{formatUSD(owed)}</strong></p>
 
       <section className="card mb-8">
-        <h2 className="mb-3 text-lg font-bold">Registrar pago recibido</h2>
+        <h2 className="mb-3 text-xl font-semibold">Registrar pago recibido</h2>
         {invoices.length ? (
           <ReconcileForm action={saveFavoritaPayment} invoices={invoices} today={localDate(new Date())} />
         ) : (
-          <p className="text-stone-500 dark:text-stone-400">No hay facturas pendientes de pago. Las facturas se registran en cada orden de compra.</p>
+          <EmptyState title="No hay facturas pendientes de pago. Las facturas se registran en cada orden de compra." />
         )}
       </section>
 
       <section>
-        <h2 className="mb-3 text-lg font-bold">Pagos registrados</h2>
+        <h2 className="mb-3 text-xl font-semibold">Pagos registrados</h2>
         {(payments ?? []).length ? (
           <ul className="space-y-3">
             {((payments ?? []) as Payment[]).map((p) => {
@@ -68,7 +69,7 @@ export default async function FavoritaPaymentsPage() {
             })}
           </ul>
         ) : (
-          <p className="text-stone-500 dark:text-stone-400">Todavía no hay pagos registrados.</p>
+          <EmptyState title="Todavía no hay pagos registrados." />
         )}
       </section>
     </main>

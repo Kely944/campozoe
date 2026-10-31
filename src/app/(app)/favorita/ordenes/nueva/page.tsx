@@ -1,4 +1,5 @@
 import { createPurchaseOrder } from "../../actions";
+import EmptyState from "@/components/EmptyState";
 import ActionForm from "@/components/ActionForm";
 import { isoWeek, type Product } from "@/lib/favorita";
 import { requireAdmin } from "@/lib/session";
@@ -14,7 +15,7 @@ export default async function NewPurchaseOrderPage() {
 
   return (
     <main>
-      <h1 className="mb-4 text-2xl font-bold">Nueva orden de compra</h1>
+      <h1 className="mb-6 font-display text-3xl leading-tight font-semibold">Nueva orden de compra</h1>
       <ActionForm action={createPurchaseOrder} submit="Guardar orden" className="space-y-5">
         <div className="grid grid-cols-2 gap-3">
           <div>
@@ -43,7 +44,7 @@ export default async function NewPurchaseOrderPage() {
               </div>
             ))
           ) : (
-            <p className="text-stone-500 dark:text-stone-400">Primero agrega productos en Favorita &gt; Productos.</p>
+            <EmptyState title="Primero agrega productos en Favorita › Productos." />
           )}
         </fieldset>
         <div>

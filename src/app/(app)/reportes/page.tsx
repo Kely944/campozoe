@@ -1,4 +1,5 @@
 import { importFile } from "./actions";
+import EmptyState from "@/components/EmptyState";
 import ActionForm from "@/components/ActionForm";
 import { fetchAll } from "@/lib/dashboard";
 import { IMPORT_KINDS } from "@/lib/importacion";
@@ -30,7 +31,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
 
   return (
     <main>
-      <h1 className="mb-4 text-2xl font-bold">Reportes</h1>
+      <h1 className="mb-6 font-display text-3xl leading-tight font-semibold">Reportes</h1>
 
       <form className="card mb-6 grid grid-cols-2 gap-3" method="get">
         <div>
@@ -63,7 +64,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
 
           {r.months.length > 0 && (
             <section className="card mb-6">
-              <h2 className="mb-3 text-lg font-bold">Por mes (unidades)</h2>
+              <h2 className="mb-3 text-xl font-semibold">Por mes (unidades)</h2>
               <ul className="space-y-2">
                 {r.months.map((m) => (
                   <li key={m.month} className="grid grid-cols-[4.5rem_1fr_auto] items-center gap-2 text-sm">
@@ -77,7 +78,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
           )}
 
           <section className="mb-8">
-            <h2 className="mb-3 text-lg font-bold">Por cliente</h2>
+            <h2 className="mb-3 text-xl font-semibold">Por cliente</h2>
             {r.customers.length ? (
               <ol className="card divide-y divide-stone-200 py-1 dark:divide-stone-800">
                 {r.customers.map((c) => (
@@ -91,7 +92,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
                 ))}
               </ol>
             ) : (
-              <p className="text-stone-500 dark:text-stone-400">No hay ventas de ese producto en el periodo.</p>
+              <EmptyState title="No hay ventas de ese producto en el periodo." />
             )}
           </section>
         </>
@@ -102,7 +103,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
       )}
 
       <section className="card">
-        <h2 className="mb-1 text-lg font-bold">Importar del facturador</h2>
+        <h2 className="mb-1 text-xl font-semibold">Importar del facturador</h2>
         <p className="mb-3 text-sm text-stone-600 dark:text-stone-400">
           Archivo .xlsx o .csv con una fila de títulos (Fecha, Cliente, Producto, Cantidad, Total…). Importar dos veces el mismo archivo no duplica ventas.
           Las cuentas por cobrar reemplazan a las anteriores.

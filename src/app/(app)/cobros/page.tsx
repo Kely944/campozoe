@@ -1,5 +1,7 @@
 import Link from "next/link";
+import EmptyState from "@/components/EmptyState";
 import { createCreditNoteWatch, createCreditSale, markCreditPaid, resolveCreditNote, saveCreditDays } from "./actions";
+import SubmitButton from "@/components/SubmitButton";
 import ActionForm from "@/components/ActionForm";
 import { balancesByCustomer, creditNoteDeadline, daysSince, type CreditSale } from "@/lib/cobros";
 import { requireProfile } from "@/lib/session";
@@ -47,12 +49,12 @@ export default async function CollectionsPage() {
   return (
     <main>
       <div className="mb-4 flex items-center justify-between gap-2">
-        <h1 className="text-2xl font-bold">Cobros</h1>
+        <h1 className="font-display text-3xl leading-tight font-semibold">Cobros</h1>
         {isAdmin && <Link href="/cobros/favorita" className="btn-secondary">Pagos de Favorita</Link>}
       </div>
 
       <section className="card mb-8">
-        <h2 className="mb-3 text-lg font-bold">Registrar venta fiada</h2>
+        <h2 className="mb-3 text-xl font-semibold">Registrar venta fiada</h2>
         <ActionForm action={createCreditSale} submit="Guardar venta">
           <div>
             <label className="label" htmlFor="customer">Cliente (nombre o puesto)</label>
@@ -78,7 +80,7 @@ export default async function CollectionsPage() {
       </section>
 
       <section className="mb-8">
-        <h2 className="mb-1 text-lg font-bold">Saldos por cliente</h2>
+        <h2 className="mb-1 text-xl font-semibold">Saldos por cliente</h2>
         <p className="mb-3 text-stone-600 dark:text-stone-400">Total por cobrar: <strong className="text-stone-900 dark:text-stone-100">{formatUSD(total)}</strong></p>
         {balances.length ? (
           <ol className="card divide-y divide-stone-200 py-1 dark:divide-stone-800">
@@ -93,13 +95,13 @@ export default async function CollectionsPage() {
             ))}
           </ol>
         ) : (
-          <p className="text-stone-500 dark:text-stone-400">Nadie debe nada. 🎉</p>
+          <EmptyState title="Nadie debe nada. 🎉" />
         )}
       </section>
 
       {pending.length > 0 && (
         <section className="mb-8">
-          <h2 className="mb-3 text-lg font-bold">Ventas por cobrar</h2>
+          <h2 className="mb-3 text-xl font-semibold">Ventas por cobrar</h2>
           <ul className="space-y-3">
             {pending.map((s) => {
               const days = daysSince(s.sold_on, today);
@@ -115,7 +117,7 @@ export default async function CollectionsPage() {
                     </div>
                     {(s.seller_id === user.id || isAdmin) && (
                       <form action={markCreditPaid.bind(null, s.id)}>
-                        <button className="btn-primary shrink-0">Cobrado</button>
+                        <SubmitButton className="btn-primary shrink-0" pendingText="…">Cobrado</SubmitButton>
                       </form>
                     )}
                   </div>
@@ -129,7 +131,7 @@ export default async function CollectionsPage() {
       {isAdmin && (
         <>
           <section className="mb-8">
-            <h2 className="mb-1 text-lg font-bold">Plazo de nota de crédito</h2>
+            <h2 className="mb-1 text-xl font-semibold">Plazo de nota de crédito</h2>
             <p className="mb-3 text-sm text-stone-600 dark:text-stone-400">Hay 8 días laborables desde la factura para anularla con nota de crédito.</p>
             <details className="card mb-3">
               <summary className="cursor-pointer font-semibold text-green-800 dark:text-green-400">+ Vigilar una factura</summary>
@@ -166,20 +168,20 @@ export default async function CollectionsPage() {
                         {late ? "Plazo vencido el" : "Último día:"} {formatDate(deadline)}{w.reason && ` · ${w.reason}`}
                       </p>
                       <form action={resolveCreditNote.bind(null, w.id)} className="mt-3">
-                        <button className="btn-secondary w-full text-sm">Listo (nota hecha o ya no hace falta)</button>
+                        <SubmitButton className="btn-secondary w-full text-sm" pendingText="…">Listo (nota hecha o ya no hace falta)</SubmitButton>
                       </form>
                     </li>
                   );
                 })}
               </ul>
             ) : (
-              <p className="text-stone-500 dark:text-stone-400">No hay facturas vigiladas.</p>
+              <EmptyState title="No hay facturas vigiladas." />
             )}
           </section>
 
           {billed.length > 0 && (
             <section className="mb-8">
-              <h2 className="mb-1 text-lg font-bold">Por cobrar según el facturador</h2>
+              <h2 className="mb-1 text-xl font-semibold">Por cobrar según el facturador</h2>
               <p className="mb-3 text-sm text-stone-600 dark:text-stone-400">Del último Excel importado en Reportes.</p>
               <ol className="card divide-y divide-stone-200 py-1 dark:divide-stone-800">
                 {billed.map((b) => (

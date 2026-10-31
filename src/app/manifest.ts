@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Recordatorios de pedidos, ofertas y pagos.",
     start_url: "/",
     display: "standalone",
-    background_color: "#f6f7f5",
-    theme_color: "#15803d",
+    background_color: "#f6f3ec",
+    theme_color: "#255925",
     lang: "es",
     icons: [
       { src: "/icon-192.png", sizes: "192x192", type: "image/png" },

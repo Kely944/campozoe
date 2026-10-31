@@ -1,5 +1,7 @@
 import Link from "next/link";
+import EmptyState from "@/components/EmptyState";
 import { markDelivered, registerInvoice, saveOffer, setOfferItemSent } from "./actions";
+import SubmitButton from "@/components/SubmitButton";
 import ActionForm from "@/components/ActionForm";
 import CopyButton from "@/components/CopyButton";
 import OfferForm from "@/components/OfferForm";
@@ -63,7 +65,7 @@ export default async function FavoritaPage({ searchParams }: { searchParams: Pro
   return (
     <main>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-bold">Favorita</h1>
+        <h1 className="font-display text-3xl leading-tight font-semibold">Favorita</h1>
         <div className="flex gap-2">
           <Link href="/favorita/productos" className="btn-secondary">Productos</Link>
           <Link href="/favorita/ordenes/nueva" className="btn-primary">+ Orden</Link>
@@ -81,7 +83,7 @@ export default async function FavoritaPage({ searchParams }: { searchParams: Pro
         <div className="mb-3 flex items-center justify-between gap-2">
           <Link href={`/favorita?semana=${addDays(week, -7)}`} className="btn-secondary min-w-12 px-3" aria-label="Semana anterior">‹</Link>
           <div className="text-center">
-            <h2 className="text-lg font-bold">Oferta semana {weekNumber}</h2>
+            <h2 className="text-xl font-semibold">Oferta semana {weekNumber}</h2>
             <p className={`text-sm ${deadline < now ? "text-stone-500 dark:text-stone-400" : "font-semibold text-amber-800 dark:text-amber-300"}`}>
               Cierra {formatDue(deadline)} · {relative(deadline, now)}
             </p>
@@ -93,8 +95,10 @@ export default async function FavoritaPage({ searchParams }: { searchParams: Pro
 
       {items.length > 0 && (
         <section className="mb-8">
-          <div className="mb-3 flex items-center justify-between gap-2">
-            <h2 className="text-lg font-bold">Lista para copiar ({items.filter((i) => i.sent).length}/{items.length} enviados)</h2>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-xl font-semibold">
+              Lista para enviar <span className="font-sans text-base font-bold text-stone-500 dark:text-stone-400">{items.filter((i) => i.sent).length}/{items.length}</span>
+            </h2>
             {offer?.link && <a href={offer.link} target="_blank" rel="noopener noreferrer" className="btn-primary text-sm">Abrir enlace</a>}
           </div>
           <p className="mb-3 text-sm text-stone-600 dark:text-stone-400">
@@ -123,7 +127,7 @@ export default async function FavoritaPage({ searchParams }: { searchParams: Pro
                     )}
                     <CopyButton text={text} />
                     <form action={setOfferItemSent.bind(null, offer!.id, i.product_id, i.delivery_day, !i.sent)}>
-                      <button className={i.sent ? "btn-secondary text-sm" : "btn-primary text-sm"}>{i.sent ? "Deshacer" : "Enviado"}</button>
+                      <SubmitButton className={i.sent ? "btn-secondary text-sm" : "btn-primary text-sm"} pendingText="…">{i.sent ? "Deshacer" : "Enviado"}</SubmitButton>
                     </form>
                   </div>
                 </li>
@@ -134,7 +138,7 @@ export default async function FavoritaPage({ searchParams }: { searchParams: Pro
       )}
 
       <section>
-        <h2 className="mb-3 text-lg font-bold">Órdenes de compra</h2>
+        <h2 className="mb-3 text-xl font-semibold">Órdenes de compra</h2>
         {pos.length ? (
           <ul className="space-y-3">
             {pos.map((o) => (
@@ -153,7 +157,7 @@ export default async function FavoritaPage({ searchParams }: { searchParams: Pro
                 </p>
                 {!o.delivered_at && (
                   <form action={markDelivered.bind(null, o.id)} className="mt-3">
-                    <button className="btn-primary w-full">Ya se entregó</button>
+                    <SubmitButton className="btn-primary w-full" pendingText="…">Ya se entregó</SubmitButton>
                   </form>
                 )}
                 {!o.invoice_number && (
@@ -177,7 +181,7 @@ export default async function FavoritaPage({ searchParams }: { searchParams: Pro
             ))}
           </ul>
         ) : (
-          <p className="text-stone-500 dark:text-stone-400">Cuando llegue una orden de compra, regístrala con “+ Orden” para recibir el aviso de entrega.</p>
+          <EmptyState title="Cuando llegue una orden de compra, regístrala con “+ Orden” para recibir el aviso de entrega." />
         )}
       </section>
     </main>

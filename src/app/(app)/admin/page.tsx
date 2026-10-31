@@ -164,7 +164,7 @@ function MissingPhonesNotice({ missing }: { missing: MissingPhones }) {
 function LoadError({ title }: { title: string }) {
   return (
     <section className="mb-10">
-      <h2 className="mb-3 text-lg font-bold">{title}</h2>
+      <h2 className="mb-3 text-xl font-semibold">{title}</h2>
       <p className="card text-red-800 dark:text-red-300">No se pudo cargar. Recarga la página.</p>
     </section>
   );
@@ -193,7 +193,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
 
   return (
     <main>
-      <h1 className="mb-4 text-2xl font-bold">Panel</h1>
+      <h1 className="mb-6 font-display text-3xl leading-tight font-semibold">Panel</h1>
       <div className="mb-8 grid grid-cols-3 gap-2">
         {PERIODS.map((p) => (
           <Link

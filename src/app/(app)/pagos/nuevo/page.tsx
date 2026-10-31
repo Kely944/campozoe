@@ -6,7 +6,7 @@ export default async function NewPaymentPage() {
   await requireAdmin();
   return (
     <main>
-      <h1 className="mb-4 text-2xl font-bold">Nuevo pago fijo</h1>
+      <h1 className="mb-6 font-display text-3xl leading-tight font-semibold">Nuevo pago fijo</h1>
       <PaymentForm action={savePayment.bind(null, null)} />
     </main>
   );

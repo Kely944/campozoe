@@ -11,9 +11,9 @@ export default async function TeamPage() {
 
   return (
     <main>
-      <h1 className="mb-1 text-2xl font-bold">Equipo</h1>
+      <h1 className="mb-6 font-display text-3xl leading-tight font-semibold">Equipo</h1>
       <p className="mb-4 text-sm text-stone-600 dark:text-stone-400">
-        Los avisos llegan al WhatsApp de cada persona. Para agregar a alguien, créale un usuario en Supabase (Authentication &gt; Users).
+        Los avisos llegan al WhatsApp de cada persona; si no tiene, llegan a su correo. Para agregar a alguien nuevo, pide a quien administra la app que le cree un usuario.
       </p>
       <div className="space-y-4">
         {((people ?? []) as Profile[]).map((p) => (

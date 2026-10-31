@@ -22,11 +22,11 @@ export default async function ProductionPage() {
 
   return (
     <main>
-      <h1 className="mb-4 text-2xl font-bold">Producción</h1>
+      <h1 className="mb-6 font-display text-3xl leading-tight font-semibold">Producción</h1>
 
       {isAdmin && (
         <section className="card mb-8">
-          <h2 className="mb-1 text-lg font-bold">Grano para la oferta de la semana {isoWeek(week).week}</h2>
+          <h2 className="mb-1 text-xl font-semibold">Grano para la oferta de la semana {isoWeek(week).week}</h2>
           <p className="mb-3 text-sm text-stone-600 dark:text-stone-400">Cocción: lunes para el martes y jueves para el viernes (llega un aviso el día anterior para remojar).</p>
           {hasPlan ? (
             <div className="space-y-4">

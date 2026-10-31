@@ -3,14 +3,45 @@
 /* Modo oscuro por clase en <html> (lo pone ThemeToggle / el script del layout) */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Curva de salida fuerte para entradas y respuestas al toque */
+/*
+ * Sistema visual "cuaderno de campo": papel cálido, tierra y verde musgo.
+ * Se redefinen las paletas stone y green de Tailwind para que todas las pantallas
+ * cambien juntas (incluido el modo oscuro). Contrastes revisados con WCAG AA.
+ */
 @theme {
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-heading), ui-serif, Georgia, serif;
+
+  --color-stone-50: #faf8f3;
+  --color-stone-100: #f1ede4;
+  --color-stone-200: #e3dccd;
+  --color-stone-300: #cec4b0;
+  --color-stone-400: #a3977f;
+  --color-stone-500: #776c59;
+  --color-stone-600: #5e5443;
+  --color-stone-700: #473f32;
+  --color-stone-800: #2e2921;
+  --color-stone-900: #1f1b16;
+  --color-stone-950: #151210;
+
+  --color-green-50: #eef5ec;
+  --color-green-100: #d6e8d2;
+  --color-green-200: #aed1a8;
+  --color-green-300: #7fb478;
+  --color-green-400: #6bab64;
+  --color-green-500: #3f7d3b;
+  --color-green-600: #2f6a2d;
+  --color-green-700: #255925;
+  --color-green-800: #1c461d;
+  --color-green-900: #153417;
+  --color-green-950: #0c200e;
 }
 
 :root {
-  --background: #f6f7f5;
-  --foreground: #1c1f1a;
+  --background: #f6f3ec;
+  --foreground: #1f1b16;
   color-scheme: light;
   /* Colores de estado del panel (fijos) */
   --st-bien: #0ca30c;
@@ -20,16 +51,43 @@
 }
 
 .dark {
-  --background: #131512;
-  --foreground: #e7e6e2;
+  --background: #151210;
+  --foreground: #ece6da;
   color-scheme: dark;
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(120% 60% at 50% -10%, color-mix(in srgb, var(--color-green-100) 55%, transparent), transparent 60%),
+    var(--background);
+  background-attachment: fixed;
   color: var(--foreground);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-sans);
   font-size: 17px;
+  line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+}
+.dark body {
+  background:
+    radial-gradient(120% 60% at 50% -10%, color-mix(in srgb, var(--color-green-950) 80%, transparent), transparent 60%),
+    var(--background);
+}
+
+h1,
+h2 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+/* Foco visible y grueso para navegación con teclado */
+:focus-visible {
+  outline: 3px solid var(--color-green-500);
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+.dark :focus-visible {
+  outline-color: var(--color-green-300);
 }
 
 /* Cambio de tema: círculo que se expande desde el botón (View Transitions API) */
@@ -54,28 +112,59 @@ html.theme-fade,
 html.theme-fade * {
   transition: background-color 400ms ease, border-color 400ms ease, color 400ms ease !important;
 }
+
+/* Entrada suave de cada pantalla */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.page-enter > * {
+  animation: rise 320ms var(--ease-out) both;
+}
+.page-enter > *:nth-child(2) {
+  animation-delay: 40ms;
+}
+.page-enter > *:nth-child(3) {
+  animation-delay: 80ms;
+}
+.page-enter > *:nth-child(n + 4) {
+  animation-delay: 120ms;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  ::view-transition-new(root) {
+  ::view-transition-new(root),
+  .page-enter > * {
     animation: none;
   }
 }
 
 /* Campos grandes y fáciles de tocar en el celular */
 @utility field {
-  @apply w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base focus:border-green-700 focus:outline-none focus:ring-2 focus:ring-green-700/20 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100 dark:focus:border-green-500 dark:focus:ring-green-500/25;
+  @apply min-h-12 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base text-stone-900 placeholder:text-stone-500 transition-colors focus:border-green-600 focus:outline-none focus:ring-3 focus:ring-green-600/20 disabled:bg-stone-100 disabled:text-stone-600 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100 dark:placeholder:text-stone-400 dark:focus:border-green-400 dark:focus:ring-green-400/25 dark:disabled:bg-stone-800 dark:disabled:text-stone-300;
 }
 @utility label {
-  @apply mb-1 block text-sm font-semibold text-stone-700 dark:text-stone-300;
+  @apply mb-1.5 block text-sm font-bold text-stone-700 dark:text-stone-300;
 }
 @utility btn {
-  @apply inline-flex min-h-12 items-center justify-center rounded-xl px-5 text-base font-semibold transition active:scale-[0.98] disabled:opacity-50;
+  @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-5 text-base font-bold transition duration-150 ease-out select-none active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50;
 }
 @utility btn-primary {
-  @apply btn bg-green-700 text-white hover:bg-green-800 dark:bg-green-600 dark:hover:bg-green-700;
+  @apply btn bg-green-700 text-white shadow-[0_1px_0_rgb(255_255_255/0.15)_inset,0_2px_6px_-2px_rgb(21_52_23/0.5)] hover:bg-green-800 dark:bg-green-600 dark:hover:bg-green-500;
 }
 @utility btn-secondary {
-  @apply btn border border-stone-300 bg-white text-stone-800 hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:hover:bg-stone-800;
+  @apply btn border border-stone-300 bg-white text-stone-800 hover:border-stone-400 hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100 dark:hover:bg-stone-800;
+}
+@utility btn-danger {
+  @apply btn border border-red-300 bg-white text-red-700 hover:bg-red-50 dark:border-red-900 dark:bg-stone-900 dark:text-red-300 dark:hover:bg-red-950/40;
 }
 @utility card {
-  @apply rounded-2xl border border-stone-200 bg-white p-4 shadow-sm dark:border-stone-800 dark:bg-stone-900;
+  @apply rounded-2xl border border-stone-200 bg-white p-4 shadow-[0_1px_2px_rgb(46_41_33/0.06),0_4px_16px_-8px_rgb(46_41_33/0.12)] dark:border-stone-800 dark:bg-stone-900 dark:shadow-none;
+}
+@utility badge {
+  @apply inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold tracking-wide uppercase;
+}
+@utility section-title {
+  @apply mb-3 font-display text-xl font-semibold text-stone-900 dark:text-stone-50;
 }

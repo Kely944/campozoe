@@ -56,10 +56,10 @@ export default async function ProductsPage() {
 
   return (
     <main>
-      <h1 className="mb-4 text-2xl font-bold">Productos de Favorita</h1>
+      <h1 className="mb-6 font-display text-3xl leading-tight font-semibold">Productos de Favorita</h1>
 
       <section className="card mb-8">
-        <h2 className="mb-3 text-lg font-bold">Datos fijos de la oferta</h2>
+        <h2 className="mb-3 text-xl font-semibold">Datos fijos de la oferta</h2>
         <ActionForm action={saveSettings} submit="Guardar datos">
           <div>
             <label className="label" htmlFor="supplier_code">Código de proveedor</label>
@@ -77,7 +77,7 @@ export default async function ProductsPage() {
       </section>
 
       <section className="mb-8">
-        <h2 className="mb-3 text-lg font-bold">Productos</h2>
+        <h2 className="mb-3 text-xl font-semibold">Productos</h2>
         <details className="card mb-3">
           <summary className="cursor-pointer font-semibold text-green-800 dark:text-green-400">+ Agregar producto</summary>
           <ActionForm action={saveProduct.bind(null, null)} submit="Agregar" className="mt-4 space-y-4">

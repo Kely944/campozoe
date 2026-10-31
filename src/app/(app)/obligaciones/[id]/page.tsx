@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import ConfirmSubmit from "@/components/ConfirmSubmit";
 import { deleteObligation, saveObligation } from "@/app/actions";
 import ObligationForm from "@/components/ObligationForm";
 import { requireProfile } from "@/lib/session";
@@ -19,7 +20,7 @@ export default async function EditObligationPage({ params }: { params: Promise<{
 
   return (
     <main>
-      <h1 className="mb-4 text-2xl font-bold">Editar tarea</h1>
+      <h1 className="mb-6 font-display text-3xl leading-tight font-semibold">Editar tarea</h1>
       <ObligationForm
         action={saveObligation.bind(null, id)}
         obligation={o}
@@ -27,7 +28,7 @@ export default async function EditObligationPage({ params }: { params: Promise<{
         people={people ?? []}
       />
       <form action={deleteObligation.bind(null, id)} className="mt-8">
-        <button className="btn-secondary w-full text-red-700 dark:text-red-400">Eliminar tarea</button>
+        <ConfirmSubmit label="Eliminar tarea" />
       </form>
     </main>
   );

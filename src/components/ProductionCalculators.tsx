@@ -22,7 +22,7 @@ export default function ProductionCalculators() {
   return (
     <div className="space-y-8">
       <section className="card">
-        <h2 className="mb-3 text-lg font-bold">Grano a remojar</h2>
+        <h2 className="mb-3 text-xl font-semibold">Grano a remojar</h2>
         <div className="grid grid-cols-3 gap-3">
           <div>
             <label className="label" htmlFor="calc-units">Unidades</label>
@@ -43,7 +43,7 @@ export default function ProductionCalculators() {
       </section>
 
       <section className="card">
-        <h2 className="mb-3 text-lg font-bold">Bandejas de champiñón</h2>
+        <h2 className="mb-3 text-xl font-semibold">Bandejas de champiñón</h2>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="label" htmlFor="calc-corchos">Corchos de 14 kg</label>

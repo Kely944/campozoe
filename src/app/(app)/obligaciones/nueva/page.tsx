@@ -9,7 +9,7 @@ export default async function NewObligationPage() {
   const { data: people } = await supabase.from("profiles").select("id, full_name").order("full_name");
   return (
     <main>
-      <h1 className="mb-4 text-2xl font-bold">Nueva tarea</h1>
+      <h1 className="mb-6 font-display text-3xl leading-tight font-semibold">Nueva tarea</h1>
       <ObligationForm action={saveObligation.bind(null, null)} people={people ?? []} />
     </main>
   );
