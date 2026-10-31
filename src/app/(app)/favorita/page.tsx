@@ -4,6 +4,7 @@ import ActionForm from "@/components/ActionForm";
 import CopyButton from "@/components/CopyButton";
 import OfferForm from "@/components/OfferForm";
 import { DELIVERY_DAYS, currentOfferWeek, isoWeek, offerCopyText, offerDeadline, weekStart, type FavoritaSettings, type OfferItem, type Product } from "@/lib/favorita";
+import { isGoogleFormUrl, parseGoogleForm, prefillUrl, type FormQuestion } from "@/lib/formulario";
 import { requireAdmin } from "@/lib/session";
 import { addDays, formatDate, formatDue, formatUSD, localDate, relative } from "@/lib/time";
 
@@ -18,6 +19,19 @@ interface PurchaseOrder {
   invoice_amount: number | null;
   profiles: { full_name: string } | null;
   purchase_order_items: { units: number; favorita_products: { name: string } | null }[];
+}
+
+/** RF-14: lee las preguntas si el enlace es un Formulario de Google; si no, null (se copia a mano). */
+async function loadForm(link: string | null): Promise<{ url: string; questions: FormQuestion[] } | null> {
+  if (!link || !isGoogleFormUrl(link)) return null;
+  try {
+    const res = await fetch(link, { redirect: "follow", signal: AbortSignal.timeout(5000), next: { revalidate: 3600 } });
+    if (!res.ok || !isGoogleFormUrl(res.url)) return null;
+    const questions = parseGoogleForm(await res.text());
+    return questions ? { url: res.url, questions } : null;
+  } catch {
+    return null;
+  }
 }
 
 export default async function FavoritaPage({ searchParams }: { searchParams: Promise<{ semana?: string }> }) {
@@ -44,6 +58,7 @@ export default async function FavoritaPage({ searchParams }: { searchParams: Pro
   const pos = (orders ?? []) as unknown as PurchaseOrder[];
   const noInvoice = pos.filter((o) => o.delivered_at && !o.invoice_number);
   const deadline = offerDeadline(week);
+  const form = items.length ? await loadForm(offer?.link ?? null) : null;
 
   return (
     <main>
@@ -82,17 +97,30 @@ export default async function FavoritaPage({ searchParams }: { searchParams: Pro
             <h2 className="text-lg font-bold">Lista para copiar ({items.filter((i) => i.sent).length}/{items.length} enviados)</h2>
             {offer?.link && <a href={offer.link} target="_blank" rel="noopener noreferrer" className="btn-primary text-sm">Abrir enlace</a>}
           </div>
-          <p className="mb-3 text-sm text-stone-600 dark:text-stone-400">Un formulario por producto: abre el enlace, copia los datos y marca “Enviado”.</p>
+          <p className="mb-3 text-sm text-stone-600 dark:text-stone-400">
+            {form
+              ? "Un formulario por producto: ábrelo ya lleno, revisa, envíalo y marca “Enviado”."
+              : "Un formulario por producto: abre el enlace, copia los datos y marca “Enviado”."}
+          </p>
           <ul className="space-y-3">
             {items.map((i) => {
               const p = byId.get(i.product_id);
               if (!p) return null;
               const text = offerCopyText(p, i, s);
+              const prefill = form
+                ? prefillUrl(form.url, form.questions, { supplierCode: s.supplier_code, acopio: s.acopio, barcode: p.barcode, javas: i.javas, day: i.delivery_day })
+                : null;
               return (
                 <li key={`${i.product_id}_${i.delivery_day}`} className={`card ${i.sent ? "opacity-60" : ""}`}>
                   <p className="font-semibold">{p.name} · {DELIVERY_DAYS[i.delivery_day]} · {i.javas} javas</p>
                   <pre className="my-2 whitespace-pre-wrap rounded-xl bg-stone-100 p-3 font-sans text-sm dark:bg-stone-800">{text}</pre>
-                  <div className="flex gap-2">
+                  {prefill && prefill.missing.length > 0 && (
+                    <p className="mb-2 text-sm text-stone-600 dark:text-stone-400">Completar a mano: {prefill.missing.join(", ")}</p>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    {prefill && (
+                      <a href={prefill.url} target="_blank" rel="noopener noreferrer" className="btn-primary text-sm">Abrir formulario lleno</a>
+                    )}
                     <CopyButton text={text} />
                     <form action={setOfferItemSent.bind(null, offer!.id, i.product_id, i.delivery_day, !i.sent)}>
                       <button className={i.sent ? "btn-secondary text-sm" : "btn-primary text-sm"}>{i.sent ? "Deshacer" : "Enviado"}</button>

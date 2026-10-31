@@ -23,3 +23,4 @@
 - **M7** RF-31/32/33: `/reportes` (reporte por periodo/cliente/mes e importación .xlsx/.csv sin dependencias nuevas), sugerencia de corchos en Pedidos, CxC del facturador en Cobros, migración 0011. Límite de server actions a 10 MB. Tests 115 OK, lint OK, build OK.
 - **RNF-03** correo alternativo (Resend por fetch, simulado sin claves), migración 0012, correo en Equipo. Probado con cron local. Tests 117 OK, lint OK, build OK.
 - **RNF-06** respaldo diario cifrado: `scripts/respaldo.sh` + workflow de GitHub Actions. Probado: respaldo, clave incorrecta rechazada, restauración completa sobre Supabase local con la app y RLS funcionando. Tres intentos hasta dar con el formato correcto (privilegios y datos de auth).
+- **RF-14** formulario de oferta prellenado (Google Forms) con respaldo a copiar. Tests 120 OK, lint OK, build OK.
