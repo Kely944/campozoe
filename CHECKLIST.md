@@ -15,7 +15,7 @@ Auditoría inicial: 31-oct-2026, rama `noche-completar`. Prioridad: **P0** bloqu
 | RF-04 | Avisar a respaldo (Beto/Kelly) si sigue pendiente cerca del plazo | REQ M1 | Hecho | `planNotifications` (`escalation`, `overdue`) | `schedule.test.ts` "escala al respaldo", "vencida" |
 | RF-05 | Marcar "hecho" desde aviso o app, guardando quién y cuándo | REQ M1 | Hecho | RPC `mark_done`/`undo_done` (0002), webhook; Hoy muestra "Hecha por X · fecha y hora" | Playwright + Supabase local: Beto marcó → "Hecha por Beto · sábado, 31 de octubre, 09:13"; Majo marcó y deshizo |
 | RF-06 | Pantalla "Hoy y esta semana" ordenada por urgencia | REQ M1 | Hecho | `src/app/(app)/page.tsx`: Vencidas → Hoy → Esta semana, cada grupo por hora límite | Captura en navegador (390 px) con datos del seed en Supabase local |
-| RF-07 | Obligaciones precargadas: oferta Favorita, champiñón, etiquetas, cuotas | REQ M1 | Parcial | `supabase/seed.sql` | Falta: cocción de granos (RF-29) y etiquetas 2 veces/mes (RF-21) |
+| RF-07 | Obligaciones precargadas: oferta Favorita, champiñón, etiquetas, cuotas | REQ M1 | Hecho | `supabase/seed.sql` (oferta, champiñón diario y de fin de semana, etiquetas, cuota) + migración 0010 (cocción) | Supabase local: seed aplicado y visible en Hoy/Tareas (captura) |
 | M1-a | Panel de administración con gráficas de avisos y cumplimiento | COS fila "Panel de administración" | Hecho | `/admin`, `lib/dashboard.ts` | `dashboard.test.ts` (32 tests) |
 | M1-b | Sin avisos en horario de descanso (21:00–07:00) | README/CLAUDE.md | Hecho | `DEFAULT_QUIET_HOURS` | `schedule.test.ts` "no envía en horario de descanso" |
 | M1-c | "Recordar en 1 h" desde WhatsApp | trabajo previo (0004) | Hecho | webhook + `snoozedUntil` | `schedule.test.ts` "recordar en 1 h" |
@@ -64,9 +64,9 @@ Auditoría inicial: 31-oct-2026, rama `noche-completar`. Prioridad: **P0** bloqu
 
 | # | Requerimiento | Fuente | Estado | Dónde está en el código | Cómo se verificó |
 |---|---|---|---|---|---|
-| RF-28 | Grano seco a remojar según unidades ofertadas (800 × 300 g = 24 kg cocido; rendimiento 2× → 12 kg seco) | REQ M6; TRA A1 07:00–08:00 | Falta | — | — |
-| RF-29 | Agendar cocción: lunes para martes, jueves para viernes | REQ M6; TRA A1 07:00 | Falta | — | — |
-| RF-30 | Rendimiento de champiñón: de 14 kg cuántas bandejas de 150 g, 90 g y 1 kg | REQ M6; TRA A3 10:00 | Falta | — | — |
+| RF-28 | Grano seco a remojar según unidades ofertadas (800 × 300 g = 24 kg cocido; rendimiento 2× → 12 kg seco) | REQ M6; TRA A1 07:00–08:00 | Hecho | `/produccion`: plan por día de entrega desde la oferta de la semana (`grainPlan`, gramos y rendimiento por producto) + calculadora (`dryGrainKg`) | `produccion.test.ts`; captura: oferta 50 javas → "remojar 120 kg". El ejemplo del documento tiene un error de cuenta (ver BLOQUEOS.md #1) |
+| RF-29 | Agendar cocción: lunes para martes, jueves para viernes | REQ M6; TRA A1 07:00 | Hecho | Migración 0010: tareas semanales "Cocinar granos para el martes/viernes" (lun/jue 08:00, aviso 16 h antes para remojar), idempotente | psql: aplicada dos veces → 2 filas y luego 0. Hora a confirmar (BLOQUEOS.md #2) |
+| RF-30 | Rendimiento de champiñón: de 14 kg cuántas bandejas de 150 g, 90 g y 1 kg | REQ M6; TRA A3 10:00 | Hecho | `/produccion` calculadora (`mushroomTrays`: corchos, merma, reserva de 1 kg y 90 g) | `produccion.test.ts`; Playwright: 2 de 1 kg + 20 de 90 g → 68 de 150 g; 20 de 1 kg → "No alcanza" |
 
 ## M7 Reportes (REQ § M7)
 

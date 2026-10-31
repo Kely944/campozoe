@@ -25,3 +25,6 @@ Formato: decisión · alternativas · por qué.
 21. **Nota de crédito: 8 días laborables lunes–viernes sin feriados.** Ignorar feriados adelanta el plazo, nunca lo atrasa (más conservador). Vence a las 17:00.
 22. **Conciliación de Favorita: la sugerencia toma las facturas más antiguas que suman exacto**, porque Favorita paga por antigüedad (audio 3, 13:00–14:00); si no cuadra, Majo elige a mano y se guarda con la diferencia visible. Alternativa (subconjunto cualquiera que sume) es costosa y puede elegir facturas equivocadas.
 23. **Formulario de venta fiada siempre visible** (no plegado): es la acción principal de Beto en esa pantalla.
+24. **RF-28: se usa la cuenta correcta (800 × 300 g = 240 kg), no el "24 kg" del documento.** Copiar el error daría 10 veces menos grano. Gramos y rendimiento se cargan por producto, así Majo corrige el dato sin tocar código.
+25. **RF-30: primero se reservan las bandejas de 1 kg y 90 g pedidas y el resto va en 150 g** (la más vendida), con merma opcional. Se muestra también el máximo por tamaño como referencia.
+26. **Producción la ven todos; el plan desde la oferta solo la administradora** (la oferta es de Majo por RLS). Las calculadoras sirven a quien cocina.
