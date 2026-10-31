@@ -8,6 +8,7 @@ export interface ObligationRule {
   time_of_day: string | null; // "HH:MM", hora local
   weekdays: number[] | null; // 0 = domingo; "daily" y "weekly"
   day_of_month: number | null; // "monthly"; si el mes es más corto se usa el último día
+  extra_day_of_month?: number | null; // "monthly": segundo día opcional (ej. etiquetas 2 veces al mes)
   starts_on: string; // "YYYY-MM-DD"
 }
 
@@ -34,8 +35,9 @@ export function generateOccurrences(rule: ObligationRule, from: Date, to: Date):
 
     if (rule.frequency === "monthly") {
       if (!rule.day_of_month) return [];
-      const target = Math.min(rule.day_of_month, daysInMonth(day.year, day.month));
-      if (day.day === target) result.push(due);
+      const last = daysInMonth(day.year, day.month);
+      const targets = [rule.day_of_month, rule.extra_day_of_month].filter((d): d is number => !!d);
+      if (targets.some((d) => Math.min(d, last) === day.day)) result.push(due);
     } else if (weekdays.includes(day.weekday)) {
       result.push(due);
     }

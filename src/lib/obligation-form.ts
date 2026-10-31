@@ -38,6 +38,7 @@ export interface ObligationInput {
   time_of_day: string | null;
   weekdays: number[] | null;
   day_of_month: number | null;
+  extra_day_of_month: number | null;
   reminder_offsets_min: number[];
   repeat_every_min: number | null;
   escalate_before_min: number | null;
@@ -68,6 +69,7 @@ export function parseObligationForm(f: FormLike): { data: ObligationInput } | { 
     time_of_day: null,
     weekdays: null,
     day_of_month: null,
+    extra_day_of_month: null,
     reminder_offsets_min: f.getAll("offsets").map(Number).filter((n) => n > 0).sort((a, b) => b - a),
     repeat_every_min: optInt(f, "repeat_every_min"),
     escalate_before_min: optInt(f, "escalate_before_min"),
@@ -96,6 +98,12 @@ export function parseObligationForm(f: FormLike): { data: ObligationInput } | { 
     const day = optInt(f, "day_of_month");
     if (!day || day < 1 || day > 31) return { error: "Elige el día del mes (1 a 31)." };
     data.day_of_month = day;
+    const extra = optInt(f, "extra_day_of_month");
+    if (extra !== null) {
+      if (!Number.isInteger(extra) || extra < 1 || extra > 31) return { error: "El segundo día debe estar entre 1 y 31." };
+      if (extra === day) return { error: "El segundo día debe ser distinto del primero." };
+      data.extra_day_of_month = extra;
+    }
   } else {
     const days = f.getAll("weekdays").map(Number);
     if (frequency === "weekly" && !days.length) return { error: "Elige al menos un día de la semana." };

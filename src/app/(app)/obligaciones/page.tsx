@@ -16,7 +16,7 @@ function when(o: Obligation): string {
     case "weekly":
       return `${(o.weekdays ?? []).map((d) => WEEKDAY_LABELS[d]).join(", ")} · ${time}`;
     case "monthly":
-      return `Día ${o.day_of_month} de cada mes · ${time}`;
+      return `${o.extra_day_of_month ? `Días ${o.day_of_month} y ${o.extra_day_of_month}` : `Día ${o.day_of_month}`} de cada mes · ${time}`;
   }
 }
 

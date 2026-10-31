@@ -82,6 +82,8 @@ export default function ObligationForm({ action, obligation: o, dueLocal, people
           <div>
             <label className="label" htmlFor="day_of_month">Día del mes</label>
             <input className="field" id="day_of_month" name="day_of_month" type="number" min={1} max={31} defaultValue={o?.day_of_month ?? 1} required />
+            <label className="label mt-3" htmlFor="extra_day_of_month">Otro día del mes (opcional)</label>
+            <input className="field" id="extra_day_of_month" name="extra_day_of_month" type="number" min={1} max={31} defaultValue={o?.extra_day_of_month ?? ""} placeholder="Ej. 15, si es 2 veces al mes" />
           </div>
         )}
       </fieldset>

@@ -42,6 +42,12 @@ describe("generateOccurrences", () => {
     expect(res.map(local)).toEqual(["2026-11-30 10:00", "2026-12-31 10:00", "2027-1-31 10:00", "2027-2-28 10:00"]);
   });
 
+  it("mensual dos veces: día 1 y día 15 (etiquetas)", () => {
+    const rule: ObligationRule = { ...base, frequency: "monthly", day_of_month: 1, extra_day_of_month: 15, time_of_day: "11:00" };
+    const res = generateOccurrences(rule, fromLocal(2026, 11, 1), fromLocal(2026, 12, 10));
+    expect(res.map(local)).toEqual(["2026-11-1 11:00", "2026-11-15 11:00", "2026-12-1 11:00"]);
+  });
+
   it("única: solo si cae en el rango", () => {
     const rule: ObligationRule = { ...base, frequency: "once", due_at: fromLocal(2026, 10, 30, 11).toISOString() };
     expect(generateOccurrences(rule, fromLocal(2026, 10, 24), fromLocal(2026, 11, 7))).toHaveLength(1);

@@ -34,6 +34,17 @@ describe("parseObligationForm", () => {
     expect(res).toMatchObject({ data: { due_at: "2026-10-30T15:00:00.000Z", time_of_day: null } });
   });
 
+  it("mensual con segundo día opcional", () => {
+    const f = (extra: string) =>
+      parseObligationForm(
+        form([["title", "Etiquetas"], ["frequency", "monthly"], ["time_of_day", "11:00"], ["day_of_month", "1"], ["extra_day_of_month", extra], ["offsets", "120"]]),
+      );
+    expect(f("15")).toMatchObject({ data: { day_of_month: 1, extra_day_of_month: 15 } });
+    expect(f("")).toMatchObject({ data: { day_of_month: 1, extra_day_of_month: null } });
+    expect(f("1")).toEqual({ error: "El segundo día debe ser distinto del primero." });
+    expect(f("40")).toEqual({ error: "El segundo día debe estar entre 1 y 31." });
+  });
+
   it("errores claros", () => {
     expect(parseObligationForm(form([["frequency", "daily"]]))).toEqual({ error: "Escribe un nombre para la tarea." });
     expect(

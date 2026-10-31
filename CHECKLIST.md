@@ -1,0 +1,108 @@
+# CHECKLIST – Pendientes Majo
+
+Fuentes: **REQ** = `documentación/Requerimientos_app_Majo.docx`, **TRA** = `Transcripcion_audios_elicitacion.docx`, **COS** = `Costos_app_Majo*.xlsx` (alcance acordado: fases 0–3 + cierre, RF-01…RF-33).
+Estados: Hecho (verificado con test o ejecutándolo) · Parcial · Falta · No aplica (justificado en DECISIONES.md).
+
+Auditoría inicial: 31-oct-2026, rama `noche-completar`. Prioridad: **P0** bloquea el uso diario · **P1** fase 1 acordada · **P2** fase 2 · **P3** fase 3 / no funcionales.
+
+## M1 Recordatorios y avisos (REQ § M1, COS Elaboración fase 1)
+
+| # | Requerimiento | Fuente | Estado | Dónde está en el código | Cómo se verificó |
+|---|---|---|---|---|---|
+| RF-01 | Registrar obligaciones con nombre, fecha/hora límite, frecuencia (diaria, semanal, mensual, única) y responsable | REQ M1 | Hecho | `obligations` (0001), `/obligaciones`, `lib/obligation-form.ts`, `lib/schedule.ts#generateOccurrences` | `obligation-form.test.ts`, `schedule.test.ts` (generateOccurrences) |
+| RF-02 | Avisos por WhatsApp con anticipación configurable (2 días, 1 día, 2 h…) | REQ M1 | Hecho | `planNotifications` (`reminder:<offset>`), `lib/reminders.ts`, `lib/whatsapp.ts` | `schedule.test.ts` "envía el recordatorio al alcanzar el offset", `reminders.test.ts` |
+| RF-03 | Repetir el aviso hasta que alguien marque hecha | REQ M1 | Hecho | `planNotifications` (`repeat:<n>`, `snooze:`) | `schedule.test.ts` "repite cada hora hasta que se marque hecha" |
+| RF-04 | Avisar a respaldo (Beto/Kelly) si sigue pendiente cerca del plazo | REQ M1 | Hecho | `planNotifications` (`escalation`, `overdue`) | `schedule.test.ts` "escala al respaldo", "vencida" |
+| RF-05 | Marcar "hecho" desde aviso o app, guardando quién y cuándo | REQ M1 | Hecho | RPC `mark_done`/`undo_done` (0002), webhook; Hoy muestra "Hecha por X · fecha y hora" | Playwright + Supabase local: Beto marcó → "Hecha por Beto · sábado, 31 de octubre, 09:13"; Majo marcó y deshizo |
+| RF-06 | Pantalla "Hoy y esta semana" ordenada por urgencia | REQ M1 | Hecho | `src/app/(app)/page.tsx`: Vencidas → Hoy → Esta semana, cada grupo por hora límite | Captura en navegador (390 px) con datos del seed en Supabase local |
+| RF-07 | Obligaciones precargadas: oferta Favorita, champiñón, etiquetas, cuotas | REQ M1 | Parcial | `supabase/seed.sql` | Falta: cocción de granos (RF-29) y etiquetas 2 veces/mes (RF-21) |
+| M1-a | Panel de administración con gráficas de avisos y cumplimiento | COS fila "Panel de administración" | Hecho | `/admin`, `lib/dashboard.ts` | `dashboard.test.ts` (32 tests) |
+| M1-b | Sin avisos en horario de descanso (21:00–07:00) | README/CLAUDE.md | Hecho | `DEFAULT_QUIET_HOURS` | `schedule.test.ts` "no envía en horario de descanso" |
+| M1-c | "Recordar en 1 h" desde WhatsApp | trabajo previo (0004) | Hecho | webhook + `snoozedUntil` | `schedule.test.ts` "recordar en 1 h" |
+
+## M2 Corporación Favorita (REQ § M2)
+
+| # | Requerimiento | Fuente | Estado | Dónde está en el código | Cómo se verificó |
+|---|---|---|---|---|---|
+| RF-08 | Registrar enlace semanal de oferta (llega lunes) y avisar hasta miércoles 19:00 | REQ M2; TRA A1 02:00–04:00 | Parcial | Aviso: obligación semanal en `seed.sql`. Falta guardar el enlace | — |
+| RF-09 | Datos fijos por producto: código de proveedor, centro de acopio (CAF 400), código de barras | REQ M2; TRA A1 02:00 | Falta | — | — |
+| RF-10 | Oferta de la semana por producto (javas y día miércoles/viernes) lista para copiar, un formulario por producto | REQ M2; TRA A1 03:00 | Falta | — | — |
+| RF-11 | Avisar si la oferta supera la capacidad de la buseta (100 javas) | REQ M2; TRA A1 08:00–09:00 | Falta | — | — |
+| RF-12 | Registrar orden de compra (semana, productos, unidades) y hora de entrega, con aviso previo | REQ M2; TRA A1 05:00, 09:00 | Falta | — | — |
+| RF-13 | Alertar si una orden entregada no tiene factura | REQ M2; TRA A1 10:00 | Falta | — | — |
+| RF-14 | (Fase posterior) Llenar formulario de oferta automáticamente si el formato lo permite | REQ M2; COS fase 3 | Falta | — | — |
+
+## M3 Pagos y préstamos (REQ § M3)
+
+| # | Requerimiento | Fuente | Estado | Dónde está en el código | Cómo se verificó |
+|---|---|---|---|---|---|
+| RF-15 | Registrar préstamos (banco, cuota fija, día de pago, cuenta de débito) y pagos recurrentes a proveedores y trabajadores | REQ M3; TRA A1 13:00–14:00 | Falta | Solo una obligación genérica en `seed.sql` | — |
+| RF-16 | Avisar con días de anticipación para transferir a la cuenta de débito correcta | REQ M3 | Parcial | Obligación genérica "Transferir para cuota" (sin banco/cuenta) | — |
+| RF-17 | Calendario mensual de pagos y total por semana | REQ M3; TRA A1 13:00 | Falta | — | — |
+| RF-18 | Cheques emitidos con fecha posfechada y estado | REQ M3; TRA A1 14:00–15:00 | Falta | — | — |
+
+## M4 Pedidos a proveedores (REQ § M4)
+
+| # | Requerimiento | Fuente | Estado | Dónde está en el código | Cómo se verificó |
+|---|---|---|---|---|---|
+| RF-19 | Registrar pedido diario de champiñón en corchos de 14 kg, con aviso antes del corte 9:00 | REQ M4; TRA A1 00:00–01:00, 06:00 | Parcial | Aviso: `seed.sql`. Falta registrar el pedido | — |
+| RF-20 | Destacar el pedido que cubre fin de semana y lunes | REQ M4; TRA A1 01:00 | Parcial | Obligación "alta" en `seed.sql`; falta destacarlo en el registro de pedidos | — |
+| RF-21 | Pedido de etiquetas con corte 11:00 y frecuencia 1 o 2 veces por mes | REQ M4; TRA A1 11:00 | Parcial | Frecuencia mensual con segundo día opcional (migración 0005, `extra_day_of_month`); aviso en `seed.sql`. Falta registrar el pedido (M4) | `schedule.test.ts` "mensual dos veces", `obligation-form.test.ts` "segundo día" |
+| RF-22 | Historial de pedidos por proveedor | REQ M4 | Falta | — | — |
+
+## M5 Cuentas por cobrar informales (REQ § M5)
+
+| # | Requerimiento | Fuente | Estado | Dónde está en el código | Cómo se verificó |
+|---|---|---|---|---|---|
+| RF-23 | Ventas a crédito sin datos tributarios: cliente (nombre o puesto), monto, fecha, vendedor | REQ M5; TRA A2 | Falta | — | — |
+| RF-24 | Avisar al vendedor y a Majo cuando un cobro pase de X días | REQ M5; TRA A2 00:00 ("pasado dos semanas") | Falta | — | — |
+| RF-25 | Saldos por cliente, de mayor a menor | REQ M5; TRA A3 14:00 | Falta | — | — |
+| RF-26 | Alerta de plazo de nota de crédito (8 días laborables desde la factura) para facturas marcadas | REQ M5; TRA A2 01:00 | Falta | — | — |
+| RF-27 | Registrar pagos de Favorita y conciliarlos contra facturas del reporte | REQ M5; TRA A3 14:00 | Falta | — | — |
+
+## M6 Producción (REQ § M6)
+
+| # | Requerimiento | Fuente | Estado | Dónde está en el código | Cómo se verificó |
+|---|---|---|---|---|---|
+| RF-28 | Grano seco a remojar según unidades ofertadas (800 × 300 g = 24 kg cocido; rendimiento 2× → 12 kg seco) | REQ M6; TRA A1 07:00–08:00 | Falta | — | — |
+| RF-29 | Agendar cocción: lunes para martes, jueves para viernes | REQ M6; TRA A1 07:00 | Falta | — | — |
+| RF-30 | Rendimiento de champiñón: de 14 kg cuántas bandejas de 150 g, 90 g y 1 kg | REQ M6; TRA A3 10:00 | Falta | — | — |
+
+## M7 Reportes (REQ § M7)
+
+| # | Requerimiento | Fuente | Estado | Dónde está en el código | Cómo se verificó |
+|---|---|---|---|---|---|
+| RF-31 | Ventas de champiñón por periodo y cliente | REQ M7; TRA A3 15:00–17:00 | Falta | — | — |
+| RF-32 | Importar Excel del facturador (ventas, productos, cuentas por cobrar) e historial 2019–2023 | REQ M7; TRA A3 06:00–08:00 | Falta | — | — |
+| RF-33 | Sugerir cantidad de pedido según historial de ventas | REQ M7; TRA A3 20:00–21:00 | Falta | — | — |
+
+## No funcionales (REQ § Requerimientos no funcionales)
+
+| # | Requerimiento | Fuente | Estado | Dónde está en el código | Cómo se verificó |
+|---|---|---|---|---|---|
+| RNF-01 | Celular primero; usable en computadora | REQ | Parcial | Tailwind, `max-w-2xl`; nav de 4 botones no escala a más módulos | Fase 3 (UI) |
+| RNF-02 | Uso simple: botones grandes, pocos pasos, español, sin términos técnicos | REQ | Parcial | `.btn` min-h-12; algunos textos técnicos ("Supabase (Authentication > Users)" en Equipo) | Fase 3 (UI) |
+| RNF-03 | WhatsApp como canal principal; correo como alternativa | REQ; COS "Integración WhatsApp Cloud API y correo alternativo" | Parcial | WhatsApp hecho; correo falta | — |
+| RNF-04 | Inicio de sesión por usuario; solo Majo ve montos de préstamos y pagos | REQ | Parcial | Login + RLS M1 hechos; montos: módulo M3 no existe aún | — |
+| RNF-05 | Zona horaria America/Guayaquil y montos en USD | REQ | Parcial | `lib/time.ts` (probado indirectamente); formato USD falta | `obligation-form.test.ts` "convierte la hora local de Ecuador" |
+| RNF-06 | Respaldo diario de los datos; no compartir datos financieros con terceros | REQ; COS Mantenimiento "Script en GitHub Actions" | Falta | — | — |
+| RNF-07 | Costo mensual bajo | REQ | No aplica | Decisión de infraestructura (ver DECISIONES.md) | — |
+| RNF-08 | Avisos puntuales | REQ | Parcial | `cron.sql` cada 5 min + claim de slot | Falta probar ciclo real con Supabase local |
+| SEC-1 | Registro público deshabilitado | CLAUDE.md | Hecho | `supabase/config.toml` `enable_signup = false` | Revisado en config |
+
+## Cierre (COS filas "Cierre")
+
+| # | Requerimiento | Fuente | Estado | Dónde está en el código | Cómo se verificó |
+|---|---|---|---|---|---|
+| CIE-1 | Manual de uso sencillo | COS Cierre | Falta | — | — |
+| CIE-2 | Capacitación a Majo, Beto y Kelly | COS Cierre | No aplica | Actividad presencial | — |
+
+## Orden de trabajo (pendientes por prioridad)
+
+1. **P0** RF-05/RF-06 (Hoy: hora de "hecho", urgencia), RF-21 (etiquetas 2 veces/mes) — uso diario de M1.
+2. **P1** M4: RF-19, RF-20, RF-22 (pedido diario de champiñón).
+3. **P1** M3: RF-15, RF-16, RF-17, RF-18 + RNF-04 (montos solo admin).
+4. **P1** M2: RF-08…RF-13.
+5. **P2** M5: RF-23…RF-27.
+6. **P2** M6: RF-28…RF-30 (+ RF-07 cocción).
+7. **P3** M7: RF-31…RF-33; RNF-03 correo; RNF-06 respaldo; RF-14; manual.

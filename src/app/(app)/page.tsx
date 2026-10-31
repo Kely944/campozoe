@@ -60,7 +60,7 @@ export default async function TodayPage() {
             </p>
             <p className={`text-sm ${isOverdue ? "font-semibold text-red-700 dark:text-red-400" : "text-stone-600 dark:text-stone-400"}`}>
               {r.status === "done"
-                ? `Hecha por ${names.get(r.done_by ?? "") ?? "alguien"}`
+                ? `Hecha por ${names.get(r.done_by ?? "") ?? "alguien"}${r.done_at ? ` · ${formatDue(new Date(r.done_at))}` : ""}`
                 : `${formatDue(new Date(r.due_at))} · ${relative(new Date(r.due_at), now)}`}
             </p>
             <p className="text-sm text-stone-500 dark:text-stone-400">
