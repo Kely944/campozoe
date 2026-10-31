@@ -94,15 +94,15 @@ Auditoría inicial: 31-oct-2026, rama `noche-completar`. Prioridad: **P0** bloqu
 
 | # | Requerimiento | Fuente | Estado | Dónde está en el código | Cómo se verificó |
 |---|---|---|---|---|---|
-| CIE-1 | Manual de uso sencillo | COS Cierre | Falta | — | — |
+| CIE-1 | Manual de uso sencillo | COS Cierre | Hecho | `docs/manual-de-uso.md` (por pantalla, en lenguaje simple, con lo que ve cada rol) | Revisado contra las pantallas y textos reales de la app |
 | CIE-2 | Capacitación a Majo, Beto y Kelly | COS Cierre | No aplica | Actividad presencial | — |
 
-## Orden de trabajo (pendientes por prioridad)
+## Orden de trabajo (cómo se avanzó)
 
-1. **P0** RF-05/RF-06 (Hoy: hora de "hecho", urgencia), RF-21 (etiquetas 2 veces/mes) — uso diario de M1.
-2. **P1** M4: RF-19, RF-20, RF-22 (pedido diario de champiñón).
-3. **P1** M3: RF-15, RF-16, RF-17, RF-18 + RNF-04 (montos solo admin).
-4. **P1** M2: RF-08…RF-13.
-5. **P2** M5: RF-23…RF-27.
-6. **P2** M6: RF-28…RF-30 (+ RF-07 cocción).
-7. **P3** M7: RF-31…RF-33; RNF-03 correo; RNF-06 respaldo; RF-14; manual.
+Todo quedó en **Hecho** salvo 2 **No aplica** (RNF-07 costo y CIE-2 capacitación, ver DECISIONES.md #3 y #4). Lo que falta probar con servicios reales está en BLOQUEOS.md.
+
+1. P0: RF-05, RF-06, RF-21 (uso diario de M1).
+2. P1: M4 Pedidos → M3 Pagos → M2 Favorita.
+3. P2: M5 Cobros → M6 Producción.
+4. P3: M7 Reportes, RNF-03 correo, RNF-06 respaldo, RF-14 formulario, manual.
+5. Fase 3: interfaz (RNF-01, RNF-02).
