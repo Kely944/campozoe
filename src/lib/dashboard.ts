@@ -157,6 +157,7 @@ export interface NoticeItem {
 export function slotLabel(slot: string): string {
   if (slot.startsWith("reminder:")) return `Aviso ${minutesLabel(Number(slot.slice(9)))} antes`;
   if (slot.startsWith("repeat:")) return "Repetición";
+  if (slot.startsWith("snooze:")) return "Tras posponer";
   if (slot === "escalation") return "Aviso al respaldo";
   if (slot === "overdue") return "Vencida";
   return slot;

@@ -92,12 +92,54 @@ describe("planNotifications", () => {
     expect(res).toEqual([]);
   });
 
-  it("repite cada hora hasta que se marque hecha", () => {
+  it("no insiste antes de la ventana de acción (último offset)", () => {
     const sentAt = fromLocal(2026, 10, 27, 10);
     const res = planNotifications(
       input({ now: fromLocal(2026, 10, 27, 11, 2), sent: [{ slot: "reminder:2880", recipientId: "majo", sentAt }] }),
     );
+    expect(res).toEqual([]);
+  });
+
+  it("en la ventana de acción repite cada hora hasta que se marque hecha", () => {
+    const sentAt = fromLocal(2026, 10, 28, 17);
+    const res = planNotifications(
+      input({
+        now: fromLocal(2026, 10, 28, 18, 2),
+        escalateBeforeMin: null,
+        sent: [{ slot: "reminder:120", recipientId: "majo", sentAt }],
+      }),
+    );
     expect(res).toEqual([{ slot: "repeat:1", recipientId: "majo", kind: "repeat" }]);
+  });
+
+  describe("recordar en 1 h", () => {
+    const sent = [{ slot: "reminder:120", recipientId: "majo", sentAt: fromLocal(2026, 10, 28, 17) }];
+    const snoozedUntil = fromLocal(2026, 10, 28, 18, 30);
+
+    it("mientras está pospuesta no repite al responsable", () => {
+      const res = planNotifications(input({ now: fromLocal(2026, 10, 28, 18, 5), escalateBeforeMin: null, sent, snoozedUntil }));
+      expect(res).toEqual([]);
+    });
+
+    it("el respaldo igual recibe el escalamiento", () => {
+      const res = planNotifications(input({ now: fromLocal(2026, 10, 28, 18, 5), sent, snoozedUntil }));
+      expect(res).toEqual([{ slot: "escalation", recipientId: "beto", kind: "escalation" }]);
+    });
+
+    it("al terminar el pospuesto avisa enseguida, una sola vez", () => {
+      const now = fromLocal(2026, 10, 28, 18, 32);
+      const res = planNotifications(input({ now, escalateBeforeMin: null, sent, snoozedUntil }));
+      expect(res).toEqual([{ slot: `snooze:${snoozedUntil.getTime()}`, recipientId: "majo", kind: "repeat" }]);
+      const again = planNotifications(
+        input({
+          now: fromLocal(2026, 10, 28, 18, 37),
+          escalateBeforeMin: null,
+          snoozedUntil,
+          sent: [...sent, { ...res[0], sentAt: now }],
+        }),
+      );
+      expect(again).toEqual([]);
+    });
   });
 
   it("escala al respaldo cerca del plazo", () => {

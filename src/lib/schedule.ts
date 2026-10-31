@@ -61,6 +61,7 @@ export interface PlanInput {
   responsibleId: string | null;
   backupId: string | null;
   sent: SentNotification[];
+  snoozedUntil?: Date | null; // "Recordar en 1 h" desde WhatsApp
   quietHours?: { start: number; end: number } | null; // horas locales sin avisos
 }
 
@@ -99,25 +100,34 @@ export function planNotifications(input: PlanInput): PlannedNotification[] {
     return plan;
   }
 
-  // Recordatorio: solo el más cercano ya alcanzado (si la tarea se creó tarde no llegan todos juntos).
-  const reached = input.offsetsMin.filter((o) => minutesLeft <= o);
-  if (reached.length) {
-    const slot = `reminder:${Math.min(...reached)}`;
-    if (!wasSent(slot, responsibleId)) plan.push({ slot, recipientId: responsibleId, kind: "reminder" });
-  }
-
-  // Repetición: cada N minutos desde el primer recordatorio, hasta que se marque hecha.
   const mine = sent.filter((s) => s.recipientId === responsibleId);
-  const firstReminder = mine
-    .filter((s) => s.slot.startsWith("reminder:"))
-    .reduce<Date | null>((min, s) => (!min || s.sentAt < min ? s.sentAt : min), null);
-  if (input.repeatEveryMin && firstReminder && plan.length === 0) {
-    const last = Math.max(...mine.map((s) => s.sentAt.getTime()));
-    const every = input.repeatEveryMin * MINUTE;
-    if (now.getTime() - last >= every) {
-      const n = Math.floor((now.getTime() - firstReminder.getTime()) / every);
-      const slot = `repeat:${n}`;
+  const last = mine.length ? Math.max(...mine.map((s) => s.sentAt.getTime())) : null;
+  const snoozed = input.snoozedUntil && now < input.snoozedUntil;
+
+  if (!snoozed) {
+    // Recordatorio: solo el más cercano ya alcanzado (si la tarea se creó tarde no llegan todos juntos).
+    const reached = input.offsetsMin.filter((o) => minutesLeft <= o);
+    if (reached.length) {
+      const slot = `reminder:${Math.min(...reached)}`;
+      if (!wasSent(slot, responsibleId)) plan.push({ slot, recipientId: responsibleId, kind: "reminder" });
+    }
+
+    // Fin del pospuesto: un aviso apenas vence, si no se envió nada desde entonces.
+    const until = input.snoozedUntil;
+    if (until && plan.length === 0 && (last === null || last < until.getTime())) {
+      const slot = `snooze:${until.getTime()}`;
       if (!wasSent(slot, responsibleId)) plan.push({ slot, recipientId: responsibleId, kind: "repeat" });
+    }
+
+    // Repetición: solo en la ventana de acción (desde el último offset) para no saturar.
+    const actionMin = input.offsetsMin.length ? Math.min(...input.offsetsMin) : null;
+    if (input.repeatEveryMin && actionMin !== null && minutesLeft <= actionMin && last !== null && plan.length === 0) {
+      const every = input.repeatEveryMin * MINUTE;
+      if (now.getTime() - last >= every) {
+        const windowStart = dueAt.getTime() - actionMin * MINUTE;
+        const slot = `repeat:${Math.floor((now.getTime() - windowStart) / every)}`;
+        if (!wasSent(slot, responsibleId)) plan.push({ slot, recipientId: responsibleId, kind: "repeat" });
+      }
     }
   }
 

@@ -24,7 +24,7 @@ export function whatsappEnabled(): boolean {
 /**
  * Envía la plantilla aprobada en Meta (por defecto "recordatorio_tarea"):
  *   Cuerpo: "{{1}}: {{2}}. Vence: {{3}}."
- *   Botón de respuesta rápida: "Hecho"
+ *   Botones de respuesta rápida: "Hecho" y "Recordar en 1 h"
  */
 export async function sendReminder(msg: ReminderMessage): Promise<SendResult> {
   if (!whatsappEnabled()) {
@@ -55,6 +55,12 @@ export async function sendReminder(msg: ReminderMessage): Promise<SendResult> {
             sub_type: "quick_reply",
             index: "0",
             parameters: [{ type: "payload", payload: `done:${msg.occurrenceId}` }],
+          },
+          {
+            type: "button",
+            sub_type: "quick_reply",
+            index: "1",
+            parameters: [{ type: "payload", payload: `snooze:${msg.occurrenceId}` }],
           },
         ],
       },

@@ -79,6 +79,7 @@ export async function runReminders(db: SupabaseClient, now = new Date()): Promis
       sent: (sentRows ?? [])
         .filter((s) => s.occurrence_id === occ.id)
         .map((s) => ({ slot: s.slot, recipientId: s.recipient_id, sentAt: new Date(s.sent_at) })),
+      snoozedUntil: occ.snoozed_until ? new Date(occ.snoozed_until) : null,
     });
 
     for (const item of plan) {

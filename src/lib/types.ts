@@ -34,4 +34,5 @@ export interface Occurrence {
   done_by: string | null;
   done_at: string | null;
   done_via: "app" | "whatsapp" | null;
+  snoozed_until: string | null;
 }

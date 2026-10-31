@@ -155,6 +155,7 @@ describe("slotLabel", () => {
     expect(slotLabel("reminder:1440")).toBe("Aviso 1 día antes");
     expect(slotLabel("reminder:120")).toBe("Aviso 2 h antes");
     expect(slotLabel("repeat:3")).toBe("Repetición");
+    expect(slotLabel("snooze:1793232000000")).toBe("Tras posponer");
     expect(slotLabel("escalation")).toBe("Aviso al respaldo");
     expect(slotLabel("overdue")).toBe("Vencida");
   });

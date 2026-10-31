@@ -47,11 +47,12 @@ Sin avisos entre 21:00 y 07:00 (hora de Ecuador). Si una tarea no tiene responsa
 1. Crear una app en developers.facebook.com con el producto WhatsApp y un número exclusivo para el sistema (no puede estar en uso en la app de WhatsApp).
 2. Crear y hacer aprobar la plantilla `recordatorio_tarea` (categoría *Utility*, idioma español):
    - Cuerpo: `{{1}}: {{2}}. Vence: {{3}}.`
-   - Botón de respuesta rápida: `Hecho`
+   - Botones de respuesta rápida, en este orden: `Hecho` y `Recordar en 1 h`
+   - Aprobar la plantilla con los dos botones **antes** de desplegar: el envío manda ambos y Meta rechaza el mensaje si la plantilla tiene uno solo.
 3. Cargar `WHATSAPP_TOKEN` (token permanente de usuario del sistema), `WHATSAPP_PHONE_NUMBER_ID` y `WHATSAPP_APP_SECRET`.
 4. Webhook: URL `https://TU-APP.vercel.app/api/whatsapp/webhook`, token de verificación = `WHATSAPP_VERIFY_TOKEN`, suscribirse a `messages`.
 
-El botón "Hecho" solo marca la tarea si el número que responde es del responsable, del respaldo o de una administradora.
+El botón "Hecho" solo marca la tarea si el número que responde es del responsable, del respaldo o de una administradora. "Recordar en 1 h" (mismos permisos) pausa los avisos al responsable durante una hora y avisa apenas termina; el aviso al respaldo y el de vencida no se pausan.
 
 ## Instalar en el celular
 

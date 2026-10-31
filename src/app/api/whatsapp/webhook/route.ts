@@ -20,7 +20,9 @@ interface IncomingMessage {
   interactive?: { button_reply?: { id?: string } };
 }
 
-/** Respuestas de WhatsApp: el botón "Hecho" marca la tarea como realizada. */
+const SNOOZE_MIN = 60;
+
+/** Respuestas de WhatsApp: "Hecho" marca la tarea; "Recordar en 1 h" pausa la insistencia. */
 export async function POST(request: NextRequest) {
   const raw = await request.text();
   if (!verifySignature(raw, request.headers.get("x-hub-signature-256"))) {
@@ -36,8 +38,8 @@ export async function POST(request: NextRequest) {
   const db = createAdminClient();
   for (const msg of messages) {
     const payload = msg.button?.payload ?? msg.interactive?.button_reply?.id;
-    const occurrenceId = payload?.startsWith("done:") ? payload.slice(5) : null;
-    if (!occurrenceId) continue;
+    const [action, occurrenceId] = payload?.split(":") ?? [];
+    if ((action !== "done" && action !== "snooze") || !occurrenceId) continue;
 
     // Solo el responsable o el respaldo (o un admin) pueden marcarla desde su número.
     const { data: person } = await db.from("profiles").select("id, role").eq("phone", msg.from).maybeSingle();
@@ -51,6 +53,12 @@ export async function POST(request: NextRequest) {
     const ob = occ.obligations as unknown as { responsible_id: string | null; backup_id: string | null } | null;
     const allowed = person.role === "admin" || ob?.responsible_id === person.id || ob?.backup_id === person.id;
     if (!allowed) continue;
+
+    if (action === "snooze") {
+      const until = new Date(Date.now() + SNOOZE_MIN * 60_000).toISOString();
+      await db.from("occurrences").update({ snoozed_until: until }).eq("id", occurrenceId);
+      continue;
+    }
 
     await db
       .from("occurrences")
