@@ -36,10 +36,10 @@ Auditoría inicial: 31-oct-2026, rama `noche-completar`. Prioridad: **P0** bloqu
 
 | # | Requerimiento | Fuente | Estado | Dónde está en el código | Cómo se verificó |
 |---|---|---|---|---|---|
-| RF-15 | Registrar préstamos (banco, cuota fija, día de pago, cuenta de débito) y pagos recurrentes a proveedores y trabajadores | REQ M3; TRA A1 13:00–14:00 | Falta | Solo una obligación genérica en `seed.sql` | — |
-| RF-16 | Avisar con días de anticipación para transferir a la cuenta de débito correcta | REQ M3 | Parcial | Obligación genérica "Transferir para cuota" (sin banco/cuenta) | — |
-| RF-17 | Calendario mensual de pagos y total por semana | REQ M3; TRA A1 13:00 | Falta | — | — |
-| RF-18 | Cheques emitidos con fecha posfechada y estado | REQ M3; TRA A1 14:00–15:00 | Falta | — | — |
+| RF-15 | Registrar préstamos (banco, cuota fija, día de pago, cuenta de débito) y pagos recurrentes a proveedores y trabajadores | REQ M3; TRA A1 13:00–14:00 | Hecho | `/pagos`, `/pagos/nuevo`, `/pagos/[id]`; migración 0007 `payments`; `lib/pagos.ts#parsePaymentForm` | `pagos.test.ts`; Playwright: Majo registró préstamo (Banco Pichincha, $850,50, día 5) y sueldo |
+| RF-16 | Avisar con días de anticipación para transferir a la cuenta de débito correcta | REQ M3 | Hecho | `paymentObligation`: obligación mensual vinculada (`obligations.source='pago'`), avisos N días/1 día/2 h antes, título con banco y cuenta enmascarada | `pagos.test.ts` "avisa con días de anticipación…"; en Tareas aparece "Transferir para cuota: Préstamo equipos (Banco Pichincha cta. …3456)" |
+| RF-17 | Calendario mensual de pagos y total por semana | REQ M3; TRA A1 13:00 | Hecho | `/pagos?mes=AAAA-MM`, `monthCalendar` (semanas lunes–domingo, cheques emitidos incluidos) | `pagos.test.ts` "agrupa por semana…"; captura noviembre 2026: total $2.520,50 |
+| RF-18 | Cheques emitidos con fecha posfechada y estado | REQ M3; TRA A1 14:00–15:00 | Hecho | `cheques` (0007), `/pagos` sección Cheques (emitido/cobrado/anulado) | `pagos.test.ts` "parseChequeForm"; Playwright: cheque 001234 registrado y visible en el calendario |
 
 ## M4 Pedidos a proveedores (REQ § M4)
 
@@ -83,7 +83,7 @@ Auditoría inicial: 31-oct-2026, rama `noche-completar`. Prioridad: **P0** bloqu
 | RNF-01 | Celular primero; usable en computadora | REQ | Parcial | Tailwind, `max-w-2xl`; nav de 4 botones no escala a más módulos | Fase 3 (UI) |
 | RNF-02 | Uso simple: botones grandes, pocos pasos, español, sin términos técnicos | REQ | Parcial | `.btn` min-h-12; algunos textos técnicos ("Supabase (Authentication > Users)" en Equipo) | Fase 3 (UI) |
 | RNF-03 | WhatsApp como canal principal; correo como alternativa | REQ; COS "Integración WhatsApp Cloud API y correo alternativo" | Parcial | WhatsApp hecho; correo falta | — |
-| RNF-04 | Inicio de sesión por usuario; solo Majo ve montos de préstamos y pagos | REQ | Parcial | Login + RLS M1 hechos; montos: módulo M3 no existe aún | — |
+| RNF-04 | Inicio de sesión por usuario; solo Majo ve montos de préstamos y pagos | REQ | Hecho | Login Supabase; RLS `payments`/`cheques` solo admin (0007); `/pagos` usa `requireAdmin`; los avisos no llevan monto | psql como Beto: `select count(*) from payments` = 0 e insert en cheques rechazado por RLS; Playwright: Beto en `/pagos` → redirigido a `/` |
 | RNF-05 | Zona horaria America/Guayaquil y montos en USD | REQ | Hecho | `lib/time.ts` (UTC-5 fijo, `localDate`, `formatUSD`) | `time.test.ts`, `obligation-form.test.ts` "convierte la hora local de Ecuador" |
 | RNF-06 | Respaldo diario de los datos; no compartir datos financieros con terceros | REQ; COS Mantenimiento "Script en GitHub Actions" | Falta | — | — |
 | RNF-07 | Costo mensual bajo | REQ | No aplica | Decisión de infraestructura (ver DECISIONES.md) | — |

@@ -15,3 +15,4 @@
 - 09:30 **P0** RF-05 (hora de "hecho"), RF-06 verificado, RF-21 (segundo día del mes, migración 0005). Tests 58 OK, lint OK, build OK.
 - 09:55 **M4** RF-19/20/21/22: `/pedidos`, migración 0006 con RLS (probada como Beto/Kelly/Majo), helpers de fecha local y USD (RNF-05). Tests 67 OK, lint OK, build OK.
   - Lección: no correr `next build` con `next dev` encendido (pisa `.next`, la página no hidrata y el formulario se reenvía). El script de verificación detiene el dev antes.
+- 10:25 **M3** RF-15/16/17/18 + RNF-04: `/pagos` (calendario mensual con totales por semana, préstamos y pagos fijos, cheques), migración 0007 (`payments`, `cheques`, `obligations.source`) con RLS solo admin. Helper `lib/obligations.ts` (`upsertObligation`, `completeObligation`) compartido con Tareas. Tests 76 OK, lint OK, build OK.

@@ -25,6 +25,7 @@ export interface Obligation {
   backup_id: string | null;
   priority: "normal" | "alta";
   active: boolean;
+  source: string; // "manual" o el módulo que la generó ("pago", "orden", …)
 }
 
 export interface Occurrence {

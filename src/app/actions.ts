@@ -3,9 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { parseObligationForm } from "@/lib/obligation-form";
-import { ensureOccurrences } from "@/lib/reminders";
+import { upsertObligation } from "@/lib/obligations";
 import { createClient } from "@/lib/supabase/server";
-import type { Obligation } from "@/lib/types";
 
 export interface FormState {
   error?: string;
@@ -47,16 +46,8 @@ export async function saveObligation(id: string | null, _: FormState, formData: 
   if ("error" in parsed) return { error: parsed.error };
 
   const supabase = await createClient();
-  const now = new Date();
-  const query = id
-    ? supabase.from("obligations").update({ ...parsed.data, updated_at: now.toISOString() }).eq("id", id)
-    : supabase.from("obligations").insert(parsed.data);
-  const { data, error } = await query.select("*").single();
-  if (error) return { error: "No se pudo guardar. Solo la administradora puede editar tareas." };
-
-  // Si cambió el horario, se rehacen los próximos vencimientos pendientes.
-  if (id) await supabase.from("occurrences").delete().eq("obligation_id", id).eq("status", "pending").gt("due_at", now.toISOString());
-  await ensureOccurrences(supabase, [data as Obligation], now);
+  const res = await upsertObligation(supabase, id, parsed.data);
+  if ("error" in res) return { error: res.error };
 
   revalidatePath("/", "layout");
   redirect("/obligaciones");
