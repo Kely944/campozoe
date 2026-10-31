@@ -1,34 +1,35 @@
-# Pendientes Majo – M1 Recordatorios
+# Pendientes Majo
 
-Aplicación web (PWA) que avisa por WhatsApp los plazos del negocio: oferta a Corporación Favorita, pedidos de champiñón y etiquetas, cuotas de préstamos. Los avisos se repiten hasta que alguien marca la tarea como hecha y, si sigue pendiente, se avisa al respaldo.
+Aplicación web (PWA) para el negocio de Majo (Loja): avisa por WhatsApp los plazos (oferta a Corporación Favorita, pedidos de champiñón y etiquetas, cuotas de préstamos, cobros) y sigue avisando hasta que alguien marca la tarea como hecha; si sigue pendiente, avisa al respaldo. Además lleva pedidos, cobros, pagos, producción y reportes.
 
-Stack: Next.js 15 + Supabase (PostgreSQL, Auth) + WhatsApp Business Cloud API. Hosting sugerido: Vercel.
+Stack: Next.js 15 + Supabase (PostgreSQL, Auth) + WhatsApp Business Cloud API (+ correo por Resend como alternativa). Hosting sugerido: Vercel.
 
-## Qué incluye M1
+Manual para usuarios: [`docs/manual-de-uso.md`](docs/manual-de-uso.md). Estado de cada requerimiento: [`CHECKLIST.md`](CHECKLIST.md).
 
-| Requerimiento | Dónde |
-| --- | --- |
-| RF-01 Obligaciones con fecha, frecuencia y responsable | `/obligaciones`, tabla `obligations` |
-| RF-02 Avisos por WhatsApp con anticipación configurable | `src/lib/reminders.ts`, `src/lib/whatsapp.ts` |
-| RF-03 Repetir hasta marcar hecho | `planNotifications` en `src/lib/schedule.ts` |
-| RF-04 Aviso al respaldo | ídem (`escalation`) |
-| RF-05 Marcar hecho desde la app o el botón de WhatsApp | `/` y `/api/whatsapp/webhook` |
-| RF-06 Pantalla "Hoy y esta semana" | `/` |
-| RF-07 Obligaciones precargadas | `supabase/seed.sql` |
-| Panel de administración: gráficas de cumplimiento y avisos (solo administradoras) | `/admin` |
+## Módulos
 
-Sin avisos entre 21:00 y 07:00 (hora de Ecuador). Si una tarea no tiene responsable, el aviso va a la administradora.
+| Módulo | Requerimientos | Pantalla |
+| --- | --- | --- |
+| M1 Recordatorios y avisos | RF-01 a RF-07 | `/` (Hoy), `/obligaciones`, `/admin` |
+| M2 Corporación Favorita | RF-08 a RF-14 | `/favorita`, `/favorita/productos`, `/favorita/ordenes/nueva` |
+| M3 Pagos y préstamos | RF-15 a RF-18 | `/pagos` (solo administradora) |
+| M4 Pedidos a proveedores | RF-19 a RF-22 | `/pedidos` |
+| M5 Cuentas por cobrar | RF-23 a RF-27 | `/cobros`, `/cobros/favorita` |
+| M6 Producción | RF-28 a RF-30 | `/produccion` |
+| M7 Reportes | RF-31 a RF-33 | `/reportes` (importa .xlsx/.csv del facturador) |
+
+Sin avisos entre 21:00 y 07:00 (hora de Ecuador). Si una tarea no tiene responsable, el aviso va a la administradora. Montos de préstamos, pagos, Favorita y reportes: solo la administradora (RLS).
 
 ## Puesta en marcha
 
-1. **Supabase**: crear un proyecto en supabase.com. En *SQL Editor* ejecutar, en orden, `supabase/migrations/0001_m1_recordatorios.sql`, `supabase/migrations/0002_seguridad_ocurrencias.sql`, `supabase/migrations/0003_fallos_avisos.sql` y luego `supabase/seed.sql`.
+1. **Supabase**: crear un proyecto en supabase.com. En *SQL Editor* ejecutar, **en orden**, todos los archivos de `supabase/migrations/` (`0001_…` a `0012_…`) y luego `supabase/seed.sql`.
    **Importante:** en *Authentication > Sign In / Providers* desactivar *Allow new users to sign up*. Si queda activo, cualquiera con la URL puede crearse una cuenta y ver las tareas. Los usuarios se crean solo desde el panel.
 2. **Usuarios**: en *Authentication > Users* crear el usuario de Majo (correo y contraseña). Hacerla administradora:
    ```sql
    update profiles set role = 'admin', full_name = 'Majo', phone = '593XXXXXXXXX' where id = (select id from auth.users where email = 'correo-de-majo@ejemplo.com');
    ```
    Crear también a Beto y Kelly; sus teléfonos se cargan desde la pantalla *Equipo*.
-3. **Variables**: copiar `.env.example` a `.env.local` y completar las claves de Supabase y `CRON_SECRET`.
+3. **Variables**: copiar `.env.example` a `.env.local` y completar las claves de Supabase y `CRON_SECRET` (WhatsApp y correo son opcionales).
 4. **Local**:
    ```bash
    npm install
@@ -57,3 +58,25 @@ El botón "Hecho" solo marca la tarea si el número que responde es del responsa
 ## Instalar en el celular
 
 Abrir la URL en Chrome (Android) o Safari (iPhone) y elegir *Agregar a pantalla de inicio*.
+
+## Correo alternativo (opcional)
+
+Si una persona no tiene WhatsApp registrado o el envío por WhatsApp falla, el aviso sale por correo. Crear una cuenta en resend.com, verificar el dominio y cargar `RESEND_API_KEY` y `EMAIL_FROM` (ej. `Pendientes <avisos@tu-dominio.com>`). Sin esas variables el correo se simula en la consola (`[Correo simulado]`).
+
+## Respaldo diario
+
+`.github/workflows/respaldo-diario.yml` corre todos los días a las 03:00 (Ecuador) y guarda por 30 días un respaldo cifrado (AES-256) de la base. Secretos del repositorio: `SUPABASE_DB_URL` (Project Settings > Database > Connection string) y `BACKUP_PASSPHRASE` (guárdala también fuera de GitHub). Restaurar en un proyecto nuevo y vacío:
+
+```bash
+gpg -d respaldo-AAAA-MM-DD.sql.gz.gpg | gunzip | psql "URL_DEL_PROYECTO_NUEVO"
+```
+
+También se puede correr a mano: `SUPABASE_DB_URL=… BACKUP_PASSPHRASE=… bash scripts/respaldo.sh` (necesita Docker y gpg).
+
+## Desarrollo local con Supabase en Docker
+
+```bash
+npx supabase start          # aplica migraciones y seed
+npm run dev
+```
+Crear usuarios de prueba con la API admin local o el Studio; el registro público está desactivado también en local (`supabase/config.toml`).

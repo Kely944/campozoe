@@ -22,7 +22,7 @@ Trigger one reminder cycle locally:
 curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/reminders
 ```
 
-Env vars (`.env.local`, gitignored; README mentions a `.env.example` that is not in the repo): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, and optionally `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_TEMPLATE`, `WHATSAPP_TEMPLATE_LANG`. Without WhatsApp credentials, sends are simulated and logged as `[WhatsApp simulado]`.
+Env vars (`.env.local`, gitignored; see `.env.example`): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, and optionally `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_TEMPLATE`, `WHATSAPP_TEMPLATE_LANG`. Without WhatsApp credentials, sends are simulated and logged as `[WhatsApp simulado]`; `RESEND_API_KEY`/`EMAIL_FROM` enable the email fallback (`[Correo simulado]` otherwise). `.env.example` lists them all.
 
 ## Architecture
 
@@ -30,7 +30,10 @@ Env vars (`.env.local`, gitignored; README mentions a `.env.example` that is not
 - `obligations` — recurring rule (`once|daily|weekly|monthly`, `time_of_day`, `weekdays`, `day_of_month`, `starts_on`), reminder offsets, repeat interval, escalation threshold, `responsible_id`, `backup_id`.
 - `occurrences` — concrete due dates per obligation (unique on `obligation_id,due_at`), `status pending|done`.
 - `notifications` — one row per sent notice, keyed by `(occurrence, recipient, slot)`; `notification_failures` logs failed sends (via `log_notification_failure` RPC).
-- `profiles` — `role` (`admin` or not) and `phone`. `is_admin()` drives RLS.
+- `profiles` — `role` (`admin` or not), `phone` and `email` (fallback channel). `is_admin()` drives RLS.
+- Module tables (0006–0012): `supplier_orders` (M4), `payments`/`cheques` (M3), `app_settings`/`favorita_*`/`purchase_orders` (M2), `credit_sales`/`credit_note_watch`/`favorita_payments` (M5), `sales`/`catalog_products`/`receivables` (M7). Finance/Favorita/report tables are admin-only RLS; `supplier_orders` and `credit_sales` are readable by everyone, written by the session user.
+
+**Module reminders = derived obligations.** Modules never send messages themselves: they create an `obligations` row with `source` ≠ `'manual'` (`pago`, `orden`, `factura`, `cobro`, `nota_credito`, `produccion`) and keep its id (`obligation_id`). Admin modules use `upsertObligation`/`completeObligation` (`lib/obligations.ts`); `credit_sales` uses the security-definer trigger `credit_sale_reminder` and RPC `mark_credit_paid` because operativos can't write obligations.
 
 **Security lives in the DB.** RLS: everyone authenticated can read obligations/occurrences; only admins write obligations or read notifications. Marking done/undo goes only through `mark_done` / `undo_done` security-definer RPCs (migration 0002) — never update `occurrences` directly from the app. Server actions (`src/app/actions.ts`) use the user-session client (`lib/supabase/server.ts`, respects RLS); only the cron and WhatsApp webhook use the service-role client (`lib/supabase/admin.ts`). Public sign-up must stay disabled in Supabase.
 
@@ -43,11 +46,11 @@ Env vars (`.env.local`, gitignored; README mentions a `.env.example` that is not
 
 **Time handling:** all scheduling uses `lib/time.ts` — Ecuador is fixed UTC-5 (no DST), implemented with a constant offset, not `Intl`. Use `toLocal`/`fromLocal`/`parseLocalDateTime` rather than `Date` local methods (server runs in UTC).
 
-**Pure logic vs. I/O:** testable logic sits in `lib/schedule.ts`, `lib/obligation-form.ts` (FormData parsing/validation), and `lib/dashboard.ts` (admin panel bucketing/classification), each with a co-located `*.test.ts`. DB/network code (`reminders.ts`, `whatsapp.ts`, `session.ts`) is `server-only`. Put new business rules in the pure modules and test there.
+**Pure logic vs. I/O:** testable logic sits in `lib/schedule.ts`, `lib/obligation-form.ts`, `lib/dashboard.ts`, and one module per feature (`pedidos`, `pagos`, `favorita`, `cobros`, `produccion`, `reportes`, `importacion`, `hoja` (xlsx/csv reader on `node:zlib`), `formulario` (Google Forms prefill), `time`), each with a co-located `*.test.ts`. DB/network code (`reminders.ts`, `whatsapp.ts`, `session.ts`) is `server-only`. Put new business rules in the pure modules and test there.
 
-**App routes:** `src/app/(app)/` is the authenticated shell (layout calls `requireProfile()`); `/` = "Hoy y esta semana", `/obligaciones` CRUD, `/equipo` phones, `/admin` charts (admins only). `middleware.ts` redirects unauthenticated users to `/login` and excludes `/api` (cron and webhook authenticate themselves).
+**App routes:** `src/app/(app)/` is the authenticated shell (layout calls `requireProfile()`); `/` = "Hoy y esta semana", `/pedidos`, `/cobros`, `/obligaciones`, `/produccion`, `/favorita`, `/pagos`, `/reportes`, `/equipo`, `/admin`, `/mas`; admin-only pages call `requireAdmin()`. Navigation items live in `lib/nav.ts` (bottom bar on mobile, sidebar on desktop). Module server actions sit next to their page (`(app)/<modulo>/actions.ts`); forms use `ActionForm`/`FormMessage` (`FormState` has `error` and `ok`). `middleware.ts` redirects unauthenticated users to `/login` and excludes `/api` (cron and webhook authenticate themselves).
 
-**Dark mode:** class-based (`.dark` on `<html>`, `@custom-variant dark` in `globals.css`), set pre-hydration by an inline script in `app/layout.tsx` from `localStorage.theme`. Shared component classes (`.input`, `.btn-primary`, `.card`, …) are defined with `@apply` in `globals.css`.
+**Dark mode:** class-based (`.dark` on `<html>`, `@custom-variant dark` in `globals.css`), set pre-hydration by an inline script in `app/layout.tsx` from `localStorage.theme`. Shared component classes (`.field`, `.label`, `.btn-primary`, `.btn-secondary`, `.btn-danger`, `.card`, `.badge`, `.section-title`) are defined with `@utility` in `globals.css`. The `stone` and `green` palettes are redefined in `@theme` (warm earth / moss); fonts are Fraunces (headings) and Lexend (body) via `next/font`.
 
 ## Docs
 
