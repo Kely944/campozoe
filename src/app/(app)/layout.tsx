@@ -6,6 +6,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 const NAV = [
   { href: "/", label: "Hoy" },
   { href: "/pedidos", label: "Pedidos" },
+  { href: "/cobros", label: "Cobros" },
   { href: "/obligaciones", label: "Tareas" },
   { href: "/equipo", label: "Equipo" },
   { href: "/favorita", label: "Favorita", admin: true },

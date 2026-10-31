@@ -54,11 +54,11 @@ Auditoría inicial: 31-oct-2026, rama `noche-completar`. Prioridad: **P0** bloqu
 
 | # | Requerimiento | Fuente | Estado | Dónde está en el código | Cómo se verificó |
 |---|---|---|---|---|---|
-| RF-23 | Ventas a crédito sin datos tributarios: cliente (nombre o puesto), monto, fecha, vendedor | REQ M5; TRA A2 | Falta | — | — |
-| RF-24 | Avisar al vendedor y a Majo cuando un cobro pase de X días | REQ M5; TRA A2 00:00 ("pasado dos semanas") | Falta | — | — |
-| RF-25 | Saldos por cliente, de mayor a menor | REQ M5; TRA A3 14:00 | Falta | — | — |
-| RF-26 | Alerta de plazo de nota de crédito (8 días laborables desde la factura) para facturas marcadas | REQ M5; TRA A2 01:00 | Falta | — | — |
-| RF-27 | Registrar pagos de Favorita y conciliarlos contra facturas del reporte | REQ M5; TRA A3 14:00 | Falta | — | — |
+| RF-23 | Ventas a crédito sin datos tributarios: cliente (nombre o puesto), monto, fecha, vendedor | REQ M5; TRA A2 | Hecho | `/cobros` (todo el equipo), `credit_sales` (0009; vendedor = usuario de la sesión por RLS) | `cobros.test.ts` "cliente sin datos tributarios"; Playwright: Beto registró 3 ventas |
+| RF-24 | Avisar al vendedor y a Majo cuando un cobro pase de X días | REQ M5; TRA A2 00:00 ("pasado dos semanas") | Hecho | Trigger `credit_sale_reminder` crea la tarea `cobro` (vence a los X días, X editable, 14 por defecto; respaldo = administradora); RPC `mark_credit_paid` la cierra | psql: tarea "Cobrar a Doña Rosa: $25.50" vence 13-nov 10:00, resp. Beto, respaldo Majo; Kelly no puede marcar cobrado; cron local: "VENCIDA: Cobrar a Doña Rosa" simulado a Beto y a Majo |
+| RF-25 | Saldos por cliente, de mayor a menor | REQ M5; TRA A3 14:00 | Hecho | `/cobros` "Saldos por cliente" (`balancesByCustomer`, une mayúsculas/espacios) | `cobros.test.ts` "saldos por cliente"; Playwright: total $85,50 → $35,50 tras "Cobrado" |
+| RF-26 | Alerta de plazo de nota de crédito (8 días laborables desde la factura) para facturas marcadas | REQ M5; TRA A2 01:00 | Hecho | `/cobros` (admin) "Plazo de nota de crédito", `credit_note_watch` (0009), `creditNoteDeadline` + tarea `nota_credito` (avisos 2 días, 1 día y 4 h antes de las 17:00) | `cobros.test.ts` "8 días laborables"; Playwright: factura del 22-oct → "Último día: martes, 3 de noviembre" |
+| RF-27 | Registrar pagos de Favorita y conciliarlos contra facturas del reporte | REQ M5; TRA A3 14:00 | Hecho | `/cobros/favorita`: `favorita_payments` + `purchase_orders.payment_id` (0009), `ReconcileForm` con diferencia en vivo y sugerencia de facturas más antiguas | `cobros.test.ts` "conciliación"; Playwright: pago $960 sugerido, "cuadra ✓" y "Cuadra exacto" |
 
 ## M6 Producción (REQ § M6)
 

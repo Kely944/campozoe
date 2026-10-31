@@ -20,3 +20,8 @@ Formato: decisión · alternativas · por qué.
 16. **Capacidad de la buseta por día de entrega** (miércoles y viernes son viajes distintos) y editable (100 por defecto). Superarla avisa pero no impide guardar: puede haber dos viajes.
 17. **M2 es solo para la administradora** (RLS `is_admin()` en todas sus tablas). Quien entrega recibe el aviso como tarea, sin ver montos de factura.
 18. **"Factura pendiente" vence a las 18:00 del día de entrega** porque el facturador y el SRI solo autorizan facturas con fecha de hoy (audio 3, 03:00). Si se entrega después de las 16:00, vence 2 h después.
+19. **RF-24 con trigger de BD**: los operativos (Beto) registran ventas pero RLS no les deja crear obligaciones; un trigger `security definer` crea el aviso de cobro y la RPC `mark_credit_paid` lo cierra. La seguridad sigue en la BD; nadie edita montos salvo la administradora.
+20. **X días = 14 por defecto, editable por la administradora** (pregunta abierta; el audio 2 dice "pasado dos semanas"). Aplica a ventas nuevas.
+21. **Nota de crédito: 8 días laborables lunes–viernes sin feriados.** Ignorar feriados adelanta el plazo, nunca lo atrasa (más conservador). Vence a las 17:00.
+22. **Conciliación de Favorita: la sugerencia toma las facturas más antiguas que suman exacto**, porque Favorita paga por antigüedad (audio 3, 13:00–14:00); si no cuadra, Majo elige a mano y se guarda con la diferencia visible. Alternativa (subconjunto cualquiera que sume) es costosa y puede elegir facturas equivocadas.
+23. **Formulario de venta fiada siempre visible** (no plegado): es la acción principal de Beto en esa pantalla.
