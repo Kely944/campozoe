@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { localDate } from "@/lib/time";
 import { verifySignature } from "@/lib/whatsapp";
 
 export const dynamic = "force-dynamic";
@@ -46,11 +47,11 @@ export async function POST(request: NextRequest) {
     if (!person) continue;
     const { data: occ } = await db
       .from("occurrences")
-      .select("id, status, obligations(responsible_id, backup_id)")
+      .select("id, status, obligation_id, obligations(responsible_id, backup_id, source)")
       .eq("id", occurrenceId)
       .maybeSingle();
     if (!occ || occ.status === "done") continue;
-    const ob = occ.obligations as unknown as { responsible_id: string | null; backup_id: string | null } | null;
+    const ob = occ.obligations as unknown as { responsible_id: string | null; backup_id: string | null; source: string } | null;
     const allowed = person.role === "admin" || ob?.responsible_id === person.id || ob?.backup_id === person.id;
     if (!allowed) continue;
 
@@ -64,6 +65,15 @@ export async function POST(request: NextRequest) {
       .from("occurrences")
       .update({ status: "done", done_by: person.id, done_at: new Date().toISOString(), done_via: "whatsapp" })
       .eq("id", occurrenceId);
+    // "Hecho" en un aviso de cobro registra el cobro (si no, la venta quedaría pendiente sin avisos).
+    if (ob?.source === "cobro") {
+      await db
+        .from("credit_sales")
+        .update({ paid_on: localDate(new Date()), paid_by: person.id })
+        .eq("obligation_id", occ.obligation_id)
+        .is("paid_on", null);
+      await db.from("obligations").update({ active: false }).eq("id", occ.obligation_id);
+    }
   }
 
   // Meta espera 200 siempre; si no, reintenta.

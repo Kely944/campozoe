@@ -33,6 +33,20 @@ export interface RunSummary {
   failed: { occurrenceId: string; error: string }[];
 }
 
+async function logFailure(db: SupabaseClient, occurrenceId: string, recipientId: string, slot: string, error: string) {
+  try {
+    const { error: logError } = await db.rpc("log_notification_failure", {
+      p_occurrence: occurrenceId,
+      p_recipient: recipientId,
+      p_slot: slot,
+      p_error: error,
+    });
+    if (logError) console.error("No se pudo guardar el fallo", logError);
+  } catch (logErr) {
+    console.error("No se pudo guardar el fallo", logErr);
+  }
+}
+
 /** Paso del cron: genera ocurrencias y envía los avisos que tocan. */
 export async function runReminders(db: SupabaseClient, now = new Date()): Promise<RunSummary> {
   const [{ data: obligations, error: e1 }, { data: profiles, error: e2 }] = await Promise.all([
@@ -105,9 +119,16 @@ export async function runReminders(db: SupabaseClient, now = new Date()): Promis
           result = await sendReminder({ ...msg, to: person.phone, occurrenceId: occ.id });
         } catch (err) {
           if (!person.email) throw err;
-          if (person.phone) console.error("WhatsApp falló, se envía por correo", err);
+          if (person.phone) {
+            // El fallo de WhatsApp queda en el panel aunque el correo sí llegue.
+            await logFailure(db, occ.id, item.recipientId, item.slot, `WhatsApp: ${String(err)}`);
+          }
           channel = "email";
-          result = await sendReminderEmail({ ...msg, to: person.email });
+          try {
+            result = await sendReminderEmail({ ...msg, to: person.email });
+          } catch (mailErr) {
+            throw new Error(person.phone ? `${String(err)} · Correo: ${String(mailErr)}` : String(mailErr));
+          }
         }
         await db
           .from("notifications")
@@ -116,17 +137,7 @@ export async function runReminders(db: SupabaseClient, now = new Date()): Promis
         summary[result.status === "sent" ? "sent" : "simulated"]++;
       } catch (err) {
         // Guarda el fallo para el panel; si no se puede, no bloquea el reintento.
-        try {
-          const { error: logError } = await db.rpc("log_notification_failure", {
-            p_occurrence: occ.id,
-            p_recipient: item.recipientId,
-            p_slot: item.slot,
-            p_error: String(err),
-          });
-          if (logError) console.error("No se pudo guardar el fallo", logError);
-        } catch (logErr) {
-          console.error("No se pudo guardar el fallo", logErr);
-        }
+        await logFailure(db, occ.id, item.recipientId, item.slot, String(err));
         // Libera el slot para reintentar en la próxima ejecución.
         await db.from("notifications").delete().eq("id", claimed.id);
         summary.failed.push({ occurrenceId: occ.id, error: String(err) });

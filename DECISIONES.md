@@ -39,3 +39,5 @@ Formato: decisión · alternativas · por qué.
 35. **Navegación**: en el celular, barra inferior con las 4 pantallas de uso diario (Hoy, Pedidos, Cobros, Tareas) y "Más"; en computadora, menú lateral con todo. Antes era una fila de botones arriba que no escalaba a 10 módulos.
 36. **Eliminar con dos toques** (`ConfirmSubmit`) en vez de `confirm()` del navegador: funciona igual en la PWA instalada y no bloquea la pantalla.
 37. **Tareas automáticas** (cobros, órdenes, facturas, notas de crédito) aparecen en su propia sección y se ocultan cuando se cierran, para que la lista de Tareas no crezca sin fin.
+38. **"Hecho" en un aviso de cobro = cobrado.** Alternativa: prohibir "Hecho" en esos avisos. Se eligió unificar (`mark_done` llama a `mark_credit_paid` con sus permisos, y el webhook hace lo mismo) porque Majo y Beto van a tocar "Hecho" en WhatsApp sin pensar en el módulo; deshacer revierte el cobro y reactiva el aviso.
+39. **El fallo de WhatsApp se registra aunque el correo llegue**, con prefijo "WhatsApp:", para que el panel muestre números o plantillas con problemas.

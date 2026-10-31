@@ -44,8 +44,11 @@ export function parseCsv(text: string): string[][] {
   return rows.filter((r) => r.some((c) => c.trim()));
 }
 
-/** Archivos dentro del zip (central directory). */
-function unzip(bytes: Uint8Array): Map<string, Uint8Array> {
+const MAX_XML_BYTES = 50 * 1024 * 1024; // límite al descomprimir una parte (evita "zip bombs")
+const MAX_COLUMN = 16383; // última columna de Excel (XFD)
+
+/** Entradas del zip (central directory). Se descomprime solo lo que se pide, con límite de tamaño. */
+function unzip(bytes: Uint8Array): (name: string) => Uint8Array | null {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   let eocd = -1;
   for (let i = bytes.length - 22; i >= Math.max(0, bytes.length - 65557); i--) {
@@ -57,7 +60,7 @@ function unzip(bytes: Uint8Array): Map<string, Uint8Array> {
   if (eocd < 0) throw new Error("El archivo no es un Excel .xlsx válido.");
   const count = view.getUint16(eocd + 10, true);
   let p = view.getUint32(eocd + 16, true);
-  const files = new Map<string, Uint8Array>();
+  const entries = new Map<string, { method: number; raw: Uint8Array }>();
   const dec = new TextDecoder();
   for (let n = 0; n < count; n++) {
     if (view.getUint32(p, true) !== 0x02014b50) throw new Error("El archivo .xlsx está dañado.");
@@ -68,12 +71,22 @@ function unzip(bytes: Uint8Array): Map<string, Uint8Array> {
     const commentLen = view.getUint16(p + 32, true);
     const local = view.getUint32(p + 42, true);
     const name = dec.decode(bytes.subarray(p + 46, p + 46 + nameLen));
+    if (local + 30 > bytes.length) throw new Error("El archivo .xlsx está dañado.");
     const dataStart = local + 30 + view.getUint16(local + 26, true) + view.getUint16(local + 28, true);
-    const raw = bytes.subarray(dataStart, dataStart + compSize);
-    files.set(name, method === 0 ? raw : new Uint8Array(inflateRawSync(raw)));
+    if (dataStart + compSize > bytes.length) throw new Error("El archivo .xlsx está dañado.");
+    entries.set(name, { method, raw: bytes.subarray(dataStart, dataStart + compSize) });
     p += 46 + nameLen + extraLen + commentLen;
   }
-  return files;
+  return (name) => {
+    const e = entries.get(name);
+    if (!e) return null;
+    if (e.method === 0) return e.raw;
+    try {
+      return new Uint8Array(inflateRawSync(e.raw, { maxOutputLength: MAX_XML_BYTES }));
+    } catch {
+      throw new Error("El Excel es demasiado grande o está dañado. Divídelo o guárdalo como .csv.");
+    }
+  };
 }
 
 const unescape = (s: string) =>
@@ -93,10 +106,10 @@ function colIndex(ref: string): number {
 }
 
 export function readXlsx(bytes: Uint8Array): string[][] {
-  const files = unzip(bytes);
+  const extract = unzip(bytes);
   const dec = new TextDecoder();
   const get = (name: string) => {
-    const f = files.get(name);
+    const f = extract(name);
     return f ? dec.decode(f) : null;
   };
 
@@ -104,7 +117,9 @@ export function readXlsx(bytes: Uint8Array): string[][] {
   const workbook = get("xl/workbook.xml") ?? "";
   const rid = workbook.match(/<sheet\b[^>]*\br:id="([^"]+)"/)?.[1];
   const rels = get("xl/_rels/workbook.xml.rels") ?? "";
-  const target = rid ? new RegExp(`<Relationship\\b[^>]*Id="${rid}"[^>]*Target="([^"]+)"`).exec(rels)?.[1] ?? rels.match(new RegExp(`Target="([^"]+)"[^>]*Id="${rid}"`))?.[1] : null;
+  // Sin construir expresiones regulares con datos del archivo.
+  const rel = [...rels.matchAll(/<Relationship\b[^>]*>/g)].map((m) => m[0]).find((tag) => tag.match(/\bId="([^"]+)"/)?.[1] === rid);
+  const target = rel?.match(/\bTarget="([^"]+)"/)?.[1] ?? null;
   const sheetPath = target ? (target.startsWith("/") ? target.slice(1) : `xl/${target}`) : "xl/worksheets/sheet1.xml";
   const sheet = get(sheetPath) ?? get("xl/worksheets/sheet1.xml");
   if (!sheet) throw new Error("No se encontró la hoja en el Excel.");
@@ -125,6 +140,7 @@ export function readXlsx(bytes: Uint8Array): string[][] {
       else if (type === "inlineStr") value = texts(body);
       else if (v !== undefined) value = unescape(v);
       const idx = ref ? colIndex(ref) : row.length;
+      if (idx > MAX_COLUMN) continue;
       while (row.length < idx) row.push("");
       row[idx] = value;
     }

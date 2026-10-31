@@ -128,6 +128,10 @@ describe("runReminders: correo como alternativa (RNF-03)", () => {
       expect.objectContaining({ table: "notifications", op: "update", payload: { status: "simulated", provider_message_id: null, channel: "email" } }),
     );
     expect(summary).toMatchObject({ simulated: 1, failed: [] });
+    // El fallo de WhatsApp queda registrado para el panel.
+    expect(calls).toContainEqual(
+      expect.objectContaining({ table: "log_notification_failure", payload: expect.objectContaining({ p_error: "WhatsApp: Error: WhatsApp 400: número inválido" }) }),
+    );
     errorSpy.mockRestore();
   });
 
@@ -138,5 +142,17 @@ describe("runReminders: correo como alternativa (RNF-03)", () => {
     const summary = await runReminders(db, now);
     expect(sendReminderEmail).toHaveBeenCalledTimes(1);
     expect(summary.failed).toEqual([]);
+  });
+});
+
+describe("runReminders: falla WhatsApp y falla el correo", () => {
+  it("guarda ambos errores y libera el slot", async () => {
+    sendReminderEmail.mockRejectedValueOnce(new Error("Correo 500"));
+    const withEmail = { ...data, profiles: [{ ...data.profiles[0], email: "majo@ejemplo.com" }] };
+    const { db, calls } = fakeDb(withEmail);
+    const summary = await runReminders(db, now);
+    expect(summary.failed[0].error).toContain("WhatsApp 400");
+    expect(summary.failed[0].error).toContain("Correo 500");
+    expect(calls).toContainEqual(expect.objectContaining({ table: "notifications", op: "delete" }));
   });
 });

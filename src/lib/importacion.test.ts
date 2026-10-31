@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { deflateRawSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 import { parseCsv, readTable } from "./hoja";
 import { mapProducts, mapReceivables, mapSales, parseDate, parseNumber } from "./importacion";
@@ -89,5 +90,63 @@ describe("mapeo de columnas", () => {
       records: [{ customer: "Corporación Favorita", document: "001-001-000100", issued_on: "2026-10-20", due_on: "2026-11-19", balance: 1200 }],
       skipped: 1,
     });
+  });
+});
+
+/** Zip mínimo (sin CRC: el lector no lo usa) para probar archivos hostiles. */
+function makeZip(files: Record<string, string | Uint8Array>): Uint8Array {
+
+  const parts: Buffer[] = [];
+  const central: Buffer[] = [];
+  let offset = 0;
+  for (const [name, content] of Object.entries(files)) {
+    const data = deflateRawSync(typeof content === "string" ? Buffer.from(content) : content);
+    const n = Buffer.from(name);
+    const local = Buffer.alloc(30);
+    local.writeUInt32LE(0x04034b50, 0);
+    local.writeUInt16LE(8, 8);
+    local.writeUInt32LE(data.length, 18);
+    local.writeUInt16LE(n.length, 26);
+    const cd = Buffer.alloc(46);
+    cd.writeUInt32LE(0x02014b50, 0);
+    cd.writeUInt16LE(8, 10);
+    cd.writeUInt32LE(data.length, 20);
+    cd.writeUInt16LE(n.length, 28);
+    cd.writeUInt32LE(offset, 42);
+    parts.push(local, n, data);
+    central.push(cd, n);
+    offset += 30 + n.length + data.length;
+  }
+  const cdBuf = Buffer.concat(central);
+  const end = Buffer.alloc(22);
+  end.writeUInt32LE(0x06054b50, 0);
+  end.writeUInt16LE(Object.keys(files).length, 10);
+  end.writeUInt32LE(cdBuf.length, 12);
+  end.writeUInt32LE(offset, 16);
+  return new Uint8Array(Buffer.concat([...parts, cdBuf, end]));
+}
+
+describe("archivos hostiles (seguridad)", () => {
+  const sheet = (cells: string) => `<worksheet><sheetData><row r="1">${cells}</row></sheetData></worksheet>`;
+
+  it("ignora celdas con columnas imposibles en vez de agotar la memoria", () => {
+    const zip = makeZip({
+      "xl/worksheets/sheet1.xml": sheet('<c r="A1" t="inlineStr"><is><t>ok</t></is></c><c r="ZZZZZZZZZ1" t="inlineStr"><is><t>x</t></is></c>'),
+    });
+    expect(readTable(zip, "a.xlsx")).toEqual([["ok"]]);
+  });
+
+  it("rechaza una parte que se descomprime a más de 50 MB (zip bomb)", () => {
+    const zip = makeZip({ "xl/worksheets/sheet1.xml": new Uint8Array(60 * 1024 * 1024) });
+    expect(() => readTable(zip, "a.xlsx")).toThrow(/demasiado grande/);
+  });
+
+  it("un id de relación con caracteres de regex no rompe la lectura", () => {
+    const zip = makeZip({
+      "xl/workbook.xml": '<workbook><sheets><sheet name="H" r:id="(a+)+$"/></sheets></workbook>',
+      "xl/_rels/workbook.xml.rels": '<Relationships><Relationship Id="(a+)+$" Target="worksheets/hoja.xml"/></Relationships>',
+      "xl/worksheets/hoja.xml": sheet('<c r="B1" t="inlineStr"><is><t>dato</t></is></c>'),
+    });
+    expect(readTable(zip, "a.xlsx")).toEqual([["", "dato"]]);
   });
 });

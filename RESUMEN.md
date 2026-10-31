@@ -2,7 +2,7 @@
 
 Todo está en la rama `noche-completar` (sin push, sin despliegue, sin tocar Supabase de producción, WhatsApp solo simulado). Cada requerimiento tiene su fila en **CHECKLIST.md**: 33 RF + 8 RNF + cierre, todo en **Hecho** salvo 2 **No aplica** justificados (RNF-07 costo, CIE-2 capacitación presencial).
 
-Estado final: **`npm test` 120 tests OK · `npm run lint` sin errores · `npm run build` OK.** Línea base al empezar: 56 tests.
+Estado final: **`npm test` 124 tests OK · `npm run lint` sin errores · `npm run build` OK.** Línea base al empezar: 56 tests.
 
 ## Qué se completó
 
@@ -19,7 +19,7 @@ Estado final: **`npm test` 120 tests OK · `npm run lint` sin errores · `npm ru
 | RNF-06 | Respaldo diario cifrado con GitHub Actions; restauración probada | `scripts/respaldo.sh` |
 | Cierre | Manual de uso para Majo, Beto y Kelly | `docs/manual-de-uso.md` |
 
-Migraciones nuevas: **0005 a 0012** (todas con RLS). Se probó `supabase db reset` aplicando 0001→0012 + seed desde cero.
+Migraciones nuevas: **0005 a 0013** (todas con RLS). Se probó `supabase db reset` aplicando 0001→0013 + seed desde cero.
 
 ## Mejoras de interfaz
 
@@ -40,6 +40,10 @@ Migraciones nuevas: **0005 a 0012** (todas con RLS). Se probó `supabase db rese
 - RF-28: la app usa la cuenta correcta (800 × 300 g = 240 kg); el ejemplo del documento dice 24 kg.
 - Sin librerías de UI nuevas; la única "dependencia" agregada son las fuentes de Google vía `next/font` (incluido en Next).
 
+## Revisión de seguridad
+
+Al final, una revisión independiente del diff completo encontró 10 problemas reales. Se corrigieron todos menos el SSRF, que la revisión descartó por bajo riesgo. Los principales: la importación de Excel no validaba que fuera la administradora antes de leer el archivo, archivos .xlsx maliciosos (zip bomb, columnas gigantes) podían tumbar el servidor, y un aviso de cobro se podía cerrar con "Hecho" sin registrar el cobro. Detalle en PROGRESO.md y en la migración 0013.
+
 ## Bloqueos / pendiente de datos reales (detalle en BLOQUEOS.md)
 
 1. Confirmar con Majo: gramaje real por unidad (RF-28), días y hora de cocción (RF-29), día del pedido de fin de semana, días para avisar cobros (14 por defecto).
@@ -49,7 +53,7 @@ Migraciones nuevas: **0005 a 0012** (todas con RLS). Se probó `supabase db rese
 
 ## Qué debes probar tú con Supabase y WhatsApp reales
 
-1. **Migraciones**: en el SQL Editor de producción ejecuta, en orden, `0005` a `0012`. Revisa que *Allow new users to sign up* siga desactivado.
+1. **Migraciones**: en el SQL Editor de producción ejecuta, en orden, `0005` a `0013`. Revisa que *Allow new users to sign up* siga desactivado.
 2. **Variables en Vercel**: las de `.env.example`. Opcional: `RESEND_API_KEY` y `EMAIL_FROM`.
 3. **Equipo**: completa WhatsApp y correo de Majo, Beto y Kelly.
 4. **WhatsApp**: plantilla `recordatorio_tarea` aprobada con botones "Hecho" y "Recordar en 1 h". Crea una tarea "Una sola vez" para dentro de 70 min con aviso "1 hora antes", espera el aviso, prueba ambos botones desde el celular y mira que en Hoy quede "Hecha por … · hora".

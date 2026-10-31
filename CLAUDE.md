@@ -31,7 +31,7 @@ Env vars (`.env.local`, gitignored; see `.env.example`): `NEXT_PUBLIC_SUPABASE_U
 - `occurrences` — concrete due dates per obligation (unique on `obligation_id,due_at`), `status pending|done`.
 - `notifications` — one row per sent notice, keyed by `(occurrence, recipient, slot)`; `notification_failures` logs failed sends (via `log_notification_failure` RPC).
 - `profiles` — `role` (`admin` or not), `phone` and `email` (fallback channel). `is_admin()` drives RLS.
-- Module tables (0006–0012): `supplier_orders` (M4), `payments`/`cheques` (M3), `app_settings`/`favorita_*`/`purchase_orders` (M2), `credit_sales`/`credit_note_watch`/`favorita_payments` (M5), `sales`/`catalog_products`/`receivables` (M7). Finance/Favorita/report tables are admin-only RLS; `supplier_orders` and `credit_sales` are readable by everyone, written by the session user.
+- Module tables (0006–0013): `supplier_orders` (M4), `payments`/`cheques` (M3), `app_settings`/`favorita_*`/`purchase_orders` (M2), `credit_sales`/`credit_note_watch`/`favorita_payments` (M5), `sales`/`catalog_products`/`receivables` (M7). Finance/Favorita/report tables are admin-only RLS; `supplier_orders` and `credit_sales` are readable by everyone, written by the session user.
 
 **Module reminders = derived obligations.** Modules never send messages themselves: they create an `obligations` row with `source` ≠ `'manual'` (`pago`, `orden`, `factura`, `cobro`, `nota_credito`, `produccion`) and keep its id (`obligation_id`). Admin modules use `upsertObligation`/`completeObligation` (`lib/obligations.ts`); `credit_sales` uses the security-definer trigger `credit_sale_reminder` and RPC `mark_credit_paid` because operativos can't write obligations.
 
