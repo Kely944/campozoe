@@ -1,0 +1,30 @@
+# RNF-06: respaldo diario de los datos (escenario económico de Costos_app_Majo.xlsx).
+# Secretos del repositorio (Settings > Secrets and variables > Actions):
+#   SUPABASE_DB_URL     cadena de conexión de Supabase (Project Settings > Database)
+#   BACKUP_PASSPHRASE   clave para cifrar; guardarla fuera de GitHub (sin ella no se puede restaurar)
+# El archivo sale cifrado (AES-256): GitHub no puede leer los datos financieros.
+name: Respaldo diario
+
+on:
+  schedule:
+    - cron: "0 8 * * *" # 03:00 en Ecuador
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  respaldo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Respaldar y cifrar
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: scripts/respaldo.sh respaldos
+      - uses: actions/upload-artifact@v4
+        with:
+          name: respaldo-${{ github.run_id }}
+          path: respaldos/*.gpg
+          retention-days: 30
