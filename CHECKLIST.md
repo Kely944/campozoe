@@ -24,12 +24,12 @@ Auditoría inicial: 31-oct-2026, rama `noche-completar`. Prioridad: **P0** bloqu
 
 | # | Requerimiento | Fuente | Estado | Dónde está en el código | Cómo se verificó |
 |---|---|---|---|---|---|
-| RF-08 | Registrar enlace semanal de oferta (llega lunes) y avisar hasta miércoles 19:00 | REQ M2; TRA A1 02:00–04:00 | Parcial | Aviso: obligación semanal en `seed.sql`. Falta guardar el enlace | — |
-| RF-09 | Datos fijos por producto: código de proveedor, centro de acopio (CAF 400), código de barras | REQ M2; TRA A1 02:00 | Falta | — | — |
-| RF-10 | Oferta de la semana por producto (javas y día miércoles/viernes) lista para copiar, un formulario por producto | REQ M2; TRA A1 03:00 | Falta | — | — |
-| RF-11 | Avisar si la oferta supera la capacidad de la buseta (100 javas) | REQ M2; TRA A1 08:00–09:00 | Falta | — | — |
-| RF-12 | Registrar orden de compra (semana, productos, unidades) y hora de entrega, con aviso previo | REQ M2; TRA A1 05:00, 09:00 | Falta | — | — |
-| RF-13 | Alertar si una orden entregada no tiene factura | REQ M2; TRA A1 10:00 | Falta | — | — |
+| RF-08 | Registrar enlace semanal de oferta (llega lunes) y avisar hasta miércoles 19:00 | REQ M2; TRA A1 02:00–04:00 | Hecho | `/favorita` (enlace por semana, `favorita_offers` 0008, botón "Abrir enlace", cierre y cuenta regresiva); aviso semanal miércoles 19:00 en `seed.sql`; `currentOfferWeek` muestra la oferta abierta | `favorita.test.ts` "la oferta cierra el miércoles a las 19:00", "la oferta que toca"; Playwright: enlace guardado y botón visible |
+| RF-09 | Datos fijos por producto: código de proveedor, centro de acopio (CAF 400), código de barras | REQ M2; TRA A1 02:00 | Hecho | `/favorita/productos`: `app_settings` (código de proveedor, acopio, capacidad) + `favorita_products` (barras, código, unidades por java) | `favorita.test.ts` "parseProductForm"; Playwright: código PRV-123 y 2 productos guardados |
+| RF-10 | Oferta de la semana por producto (javas y día miércoles/viernes) lista para copiar, un formulario por producto | REQ M2; TRA A1 03:00 | Hecho | `OfferForm` (javas por producto y día) + "Lista para copiar" con botón Copiar y "Enviado" por producto (`offerCopyText`) | `favorita.test.ts` "texto listo para copiar"; Playwright: 3 bloques, 1/3 marcado enviado |
+| RF-11 | Avisar si la oferta supera la capacidad de la buseta (100 javas) | REQ M2; TRA A1 08:00–09:00 | Hecho | `capacityByDay`: total en vivo por día de entrega y aviso al guardar (capacidad editable) | `favorita.test.ts` "avisa si pasan de 100"; Playwright: 105 javas → "No entra en la buseta: sobran 5" |
+| RF-12 | Registrar orden de compra (semana, productos, unidades) y hora de entrega, con aviso previo | REQ M2; TRA A1 05:00, 09:00 | Hecho | `/favorita/ordenes/nueva`, `purchase_orders` + items (0008); `deliveryObligation` (aviso 1 día, 2 h y 1 h antes a quien entrega) | `favorita.test.ts` "órdenes de compra"; Playwright: orden semana 44 con Kelly; obligación `orden` creada y cerrada al entregar |
+| RF-13 | Alertar si una orden entregada no tiene factura | REQ M2; TRA A1 10:00 | Hecho | "Ya se entregó" crea la tarea `factura` (vence 18:00 del día, repite cada hora) y alerta roja en `/favorita`; registrar la factura la cierra (`completeObligation`) | `favorita.test.ts` "factura pendiente vence a las 18:00"; Playwright: alerta visible tras entregar y desaparece al registrar factura; en BD la ocurrencia quedó `done` |
 | RF-14 | (Fase posterior) Llenar formulario de oferta automáticamente si el formato lo permite | REQ M2; COS fase 3 | Falta | — | — |
 
 ## M3 Pagos y préstamos (REQ § M3)
