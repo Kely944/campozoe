@@ -1,4 +1,4 @@
-// Marca Kamposzoe en versión chica (sin el nombre, que no se lee a este tamaño). Emblema completo: public/logo.svg
+// Marca Campozoe en versión chica (sin el nombre, que no se lee a este tamaño). Emblema completo: public/logo.svg
 export default function Logo({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 100 100" className={className} aria-hidden>
