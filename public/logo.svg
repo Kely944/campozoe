@@ -1,40 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 200">
-  <!-- Emblema Kamposzoe: aro verde con el nombre, círculo negro con caballito de mar y hojas. Fuente de los íconos de public/. -->
-  <defs>
-    <g id="caballito">
-      <path d="M48 8 C55 6 61 10 61 17 C61 22 58 25 59 29 C67 34 72 45 69 57 C67 66 61 71 60 78 C59 86 64 91 69 89 C74 87 74 80 69 79 C66 78.5 64 81 66 83 C63 84 61 81 62 78.5 C64 74 71 75 73 80 C75 87 69 94 62 92 C54 90 50 82 51 75 C52 68 45 64 42 57 C39 50 41 42 46 38 C47 36 46 34 44 33 C40 32 33 32 23 31.6 C19.5 31.4 19.5 27.9 23 27.8 C31 27.4 37 26 39 23 C40 16 43 10 48 8 Z" fill="#fff"/>
-      <path d="M68.5 45 C75 42 79 48 75 54 C73 56.5 70.5 56 69 54 Z" fill="#fff"/>
-      <path d="M49.5 8.4 L51.5 3.8 L53.6 7.2 L56.2 3.6 L57.4 8.6 Z" fill="#fff"/>
-      <circle cx="47" cy="19.5" r="2.3" fill="#111"/>
-      <g fill="none" stroke="#111" stroke-width="1.5" stroke-linecap="round">
-        <path d="M47 44 C52 44 56 46 58 49"/>
-        <path d="M46.5 51 C51.5 51 56 53 58.5 56.5"/>
-        <path d="M50 59 C54 60 57.5 62 58.5 65.5"/>
-      </g>
-    </g>
-  </defs>
-  <circle cx="100" cy="100" r="96" fill="#fff"/>
-  <circle cx="100" cy="100" r="92" fill="#1f4a33"/>
-  <circle cx="100" cy="100" r="58" fill="#111" stroke="#fff" stroke-width="3"/>
-  <g fill="#fff" font-family="Arial Black, Arial, Helvetica, sans-serif" font-weight="900" font-size="23" text-anchor="middle">
-    <text x="37.76" y="70.21" transform="rotate(-64.42 37.76 70.21)">K</text>
-    <text x="48.56" y="54.01" transform="rotate(-48.20 48.56 54.01)">A</text>
-    <text x="65.04" y="40.51" transform="rotate(-30.45 65.04 40.51)">M</text>
-    <text x="84.28" y="32.81" transform="rotate(-13.17 84.28 32.81)">P</text>
-    <text x="103.68" y="31.10" transform="rotate(3.06 103.68 31.10)">O</text>
-    <text x="122.68" y="34.83" transform="rotate(19.19 122.68 34.83)">S</text>
-    <text x="138.56" y="42.78" transform="rotate(33.98 138.56 42.78)">Z</text>
-    <text x="152.72" y="55.48" transform="rotate(49.82 152.72 55.48)">O</text>
-    <text x="162.77" y="71.36" transform="rotate(65.47 162.77 71.36)">E</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- Emblema Kamposzoe (generado). Fuente de los íconos PNG de public/ y de app/apple-icon.png. -->
+  <circle cx="100" cy="100" r="97" fill="#fff"/>
+  <circle cx="100" cy="100" r="93" fill="#1e4a30"/>
+  <circle cx="100" cy="100" r="52" fill="#111" stroke="#fff" stroke-width="3.5"/>
+  <g fill="#fff" font-family="Arial Black, Arial, Helvetica, sans-serif" font-weight="900" font-size="31" text-anchor="middle">
+    <text x="39.22" y="112.26" transform="rotate(258.60 39.22 112.26)">K</text>
+    <text x="39.83" y="85.05" transform="rotate(283.95 39.83 85.05)">A</text>
+    <text x="53.63" y="58.84" transform="rotate(311.59 53.63 58.84)">M</text>
+    <text x="77.44" y="42.25" transform="rotate(338.66 77.44 42.25)">P</text>
+    <text x="104.65" y="38.17" transform="rotate(364.30 104.65 38.17)">O</text>
+    <text x="130.67" y="46.12" transform="rotate(389.65 130.67 46.12)">S</text>
+    <text x="149.51" y="62.68" transform="rotate(412.99 149.51 62.68)">Z</text>
+    <text x="160.66" y="87.17" transform="rotate(438.06 160.66 87.17)">O</text>
+    <text x="160.45" y="113.77" transform="rotate(462.83 160.45 113.77)">E</text>
   </g>
-  <use xlink:href="#caballito" transform="translate(53 50) scale(0.96)"/>
-  <!-- hojas -->
-  <g fill="#fff">
-    <path d="M99 183 C87 183 80 175 82 164 C93 164 100 172 99 183 Z"/>
-    <path d="M101 183 C113 183 120 175 118 164 C107 164 100 172 101 183 Z"/>
+  <g transform="translate(51 50) scale(1.04)"><path d="M50 8 C56 6 62 10 62 16 C62 21 59 24 61 27 L66.5 28.5 L63 32 L70.5 36 L66 40 L72.5 45 L67 49 L72.5 54 L67 58 L70.5 63 L64 66 C62 70 59 73 56.5 76 L49 74.5 C46.5 68 41 64 41 56 C41 49 45 44 47 40 C48 37 47 35 45 34 C40 33 32 32 24 30.5 C20.5 29.8 21 26 24.5 26.3 C31 27 37 27 40 24 C41 17 44 10 50 8 Z" fill="#fff"/><path d="M50 8.5 L52 3.5 L54.5 7.5 L57.5 3.8 L58.5 9 Z" fill="#fff"/><path d="M52.8 75 C52.5 84 48 90 42 89.5 C36 89 34.5 81 40 78.5 C44 77 47.5 80.5 44.5 83" fill="none" stroke="#fff" stroke-width="7.5" stroke-linecap="round"/><circle cx="48" cy="18" r="2.6" fill="#111"/><g fill="none" stroke="#111" stroke-width="1.6" stroke-linecap="round"><path d="M45 46 C50 46 55 47.5 58 50"/><path d="M43.5 53 C49 53 55 55 58.5 58"/><path d="M45 60 C50 61 54 63 56.5 66.5"/></g></g>
+  
+  <g fill="#fff" stroke="#1e4a30" stroke-width="1.2">
+    <path d="M99 186 C84 187 75 177 78 163 C92 162 101 172 99 186 Z"/>
+    <path d="M101 186 C116 187 125 177 122 163 C108 162 99 172 101 186 Z"/>
   </g>
-  <g fill="none" stroke="#1f4a33" stroke-width="1.6" stroke-linecap="round">
-    <path d="M98 181 C94 175 90 171 86 168"/>
-    <path d="M102 181 C106 175 110 171 114 168"/>
+  <g fill="none" stroke="#1e4a30" stroke-width="2" stroke-linecap="round">
+    <path d="M98 183 C93 176 88 171 82 167"/>
+    <path d="M102 183 C107 176 112 171 118 167"/>
   </g>
 </svg>
