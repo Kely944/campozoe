@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useActionState, useState } from "react";
 import { signIn } from "../actions";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -15,29 +14,15 @@ export default function LoginPage() {
   const [state, action, pending] = useActionState(signIn, {});
   const [email, setEmail] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [photoLoaded, setPhotoLoaded] = useState(false);
 
   return (
-    <main className="min-h-svh bg-[#f7f7f4] lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] dark:bg-[#111111]">
+    <main className="min-h-svh bg-[#f7f7f4] dark:bg-[#111111]">
       <div className="fixed left-6 top-6 z-10 sm:left-10 sm:top-8">
         <ThemeToggle />
       </div>
 
-      {/* Foto: cama de cultivo de champiñón. Arriba en el celular, a la derecha en pantallas grandes */}
-      <figure className="relative h-[32vh] min-h-56 overflow-hidden bg-stone-900 lg:order-2 lg:sticky lg:top-0 lg:h-svh">
-        <Image
-          src="/login/cultivo-champinon.jpg"
-          alt="Champiñones blancos creciendo en camas de cultivo"
-          fill
-          priority
-          sizes="(min-width: 1024px) 54vw, 100vw"
-          onLoad={() => setPhotoLoaded(true)}
-          className={`object-cover object-[50%_70%] transition-opacity duration-500 ease-out dark:brightness-[0.8] ${photoLoaded ? "opacity-100" : "opacity-0"}`}
-        />
-      </figure>
-
-      <section className="flex flex-col px-6 pb-8 pt-10 sm:px-10 lg:min-h-svh lg:pt-8">
-        <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center lg:py-16">
+      <section className="flex min-h-svh flex-col px-6 py-10 sm:px-10">
+        <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center">
           <div className="mb-10 flex items-center gap-2.5 text-green-800 dark:text-green-500">
             <MushroomLogo className="size-8" />
             <span className="text-lg font-semibold tracking-tight text-stone-900 dark:text-white">Pendientes</span>
@@ -128,14 +113,6 @@ export default function LoginPage() {
 
           <p className="mt-6 text-sm text-stone-600 dark:text-stone-400">¿No tienes cuenta? Pídela a la administradora.</p>
         </div>
-
-        <p className="mx-auto mt-10 w-full max-w-sm text-xs text-stone-500 lg:mt-0 dark:text-stone-400">
-          Foto: «IMG 0408 – Hungary – Mushroom Farm», Andrew Bossi,{" "}
-          <a className="underline hover:text-stone-800 dark:hover:text-white" href="https://commons.wikimedia.org/w/index.php?curid=1440685" target="_blank" rel="noreferrer">
-            CC BY-SA 2.5
-          </a>
-          , vía Wikimedia Commons.
-        </p>
       </section>
     </main>
   );

@@ -4,7 +4,7 @@ Aplicación web (PWA) para el negocio de Majo (Loja): avisa por WhatsApp los pla
 
 Stack: Next.js 15 + Supabase (PostgreSQL, Auth) + WhatsApp Business Cloud API (+ correo por Resend como alternativa). Hosting sugerido: Vercel.
 
-Manual para usuarios: [`docs/manual-de-uso.md`](docs/manual-de-uso.md). Estado de cada requerimiento: [`CHECKLIST.md`](CHECKLIST.md).
+Manual para usuarios: [`docs/manual-de-uso.md`](docs/manual-de-uso.md). Despliegue a producción paso a paso: [`docs/despliegue.md`](docs/despliegue.md). Estado de cada requerimiento: [`CHECKLIST.md`](CHECKLIST.md).
 
 ## Módulos
 
