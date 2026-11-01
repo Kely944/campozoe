@@ -157,7 +157,7 @@ Para quitarlo: `select cron.unschedule('m1-recordatorios');`
 4. Crea la plantilla en **WhatsApp Manager > Plantillas de mensajes**:
    - Nombre: `recordatorio_tarea`
    - Categoría: **Utility**, idioma: **Español**
-   - Cuerpo: `{{1}}: {{2}}. Vence: {{3}}.`
+   - Cuerpo: `Recordatorio de Pendientes. {{1}}: {{2}}. Vence: {{3}}.`
    - Botones de respuesta rápida, en este orden: `Hecho` y `Recordar en 1 h`
 
    Espera a que esté **aprobada** antes de seguir. La app envía los dos botones y Meta rechaza el mensaje si la plantilla tiene uno solo.

@@ -47,7 +47,7 @@ Sin avisos entre 21:00 y 07:00 (hora de Ecuador). Si una tarea no tiene responsa
 
 1. Crear una app en developers.facebook.com con el producto WhatsApp y un número exclusivo para el sistema (no puede estar en uso en la app de WhatsApp).
 2. Crear y hacer aprobar la plantilla `recordatorio_tarea` (categoría *Utility*, idioma español):
-   - Cuerpo: `{{1}}: {{2}}. Vence: {{3}}.`
+   - Cuerpo: `Recordatorio de Pendientes. {{1}}: {{2}}. Vence: {{3}}.`
    - Botones de respuesta rápida, en este orden: `Hecho` y `Recordar en 1 h`
    - Aprobar la plantilla con los dos botones **antes** de desplegar: el envío manda ambos y Meta rechaza el mensaje si la plantilla tiene uno solo.
 3. Cargar `WHATSAPP_TOKEN` (token permanente de usuario del sistema), `WHATSAPP_PHONE_NUMBER_ID` y `WHATSAPP_APP_SECRET`.

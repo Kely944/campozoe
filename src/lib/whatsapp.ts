@@ -23,7 +23,7 @@ export function whatsappEnabled(): boolean {
 
 /**
  * Envía la plantilla aprobada en Meta (por defecto "recordatorio_tarea"):
- *   Cuerpo: "{{1}}: {{2}}. Vence: {{3}}."
+ *   Cuerpo: "Recordatorio de Pendientes. {{1}}: {{2}}. Vence: {{3}}."
  *   Botones de respuesta rápida: "Hecho" y "Recordar en 1 h"
  */
 export async function sendReminder(msg: ReminderMessage): Promise<SendResult> {
