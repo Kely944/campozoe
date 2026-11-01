@@ -2,7 +2,7 @@ import Link from "next/link";
 import { signOut } from "../actions";
 import AppNav from "@/components/AppNav";
 import Icon from "@/components/Icon";
-import MushroomLogo from "@/components/MushroomLogo";
+import Logo from "@/components/Logo";
 import ThemeToggle from "@/components/ThemeToggle";
 import { requireProfile } from "@/lib/session";
 
@@ -18,7 +18,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <header className="sticky top-0 z-20 border-b border-stone-200/70 bg-[color-mix(in_srgb,var(--background)_85%,transparent)] pt-[env(safe-area-inset-top)] backdrop-blur-md dark:border-stone-800/70">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4">
           <Link href="/" className="flex items-center gap-2 text-green-700 dark:text-green-400" aria-label="Pendientes, ir a Hoy">
-            <MushroomLogo className="size-8" />
+            <Logo className="size-8" />
             <span className="font-display text-xl font-semibold text-stone-900 dark:text-stone-50">Pendientes</span>
           </Link>
           <div className="flex items-center gap-2">

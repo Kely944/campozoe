@@ -31,6 +31,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   // Excluye API (cron y webhook se autentican solos), páginas legales públicas (Meta las revisa sin sesión),
-  // archivos estáticos y el manifest.
-  matcher: ["/((?!api|privacidad|terminos|_next/static|_next/image|favicon.ico|manifest.webmanifest|icon-.*\\.png).*)"],
+  // archivos estáticos, el manifest, los íconos (icon.svg, icon-*.png, apple-icon.png) y el logo.
+  matcher: ["/((?!api|privacidad|terminos|_next/static|_next/image|favicon.ico|manifest.webmanifest|icon|apple-icon|logo\\.svg).*)"],
 };

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { signIn } from "../actions";
 import ThemeToggle from "@/components/ThemeToggle";
-import MushroomLogo from "@/components/MushroomLogo";
+import Logo from "@/components/Logo";
 
 const inputClass =
   "h-12 w-full rounded-lg border border-stone-300 bg-white pl-11 pr-4 text-base text-stone-900 placeholder:text-stone-500 transition-colors focus:border-green-700 focus:outline-none focus:ring-2 focus:ring-green-700/20 dark:border-stone-700 dark:bg-stone-900 dark:text-white dark:placeholder:text-stone-400 dark:focus:border-green-500 dark:focus:ring-green-500/25";
@@ -25,7 +25,7 @@ export default function LoginPage() {
       <section className="flex min-h-svh flex-col px-6 py-10 sm:px-10">
         <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center">
           <div className="mb-10 flex items-center gap-2.5 text-green-800 dark:text-green-500">
-            <MushroomLogo className="size-8" />
+            <Logo className="size-8" />
             <span className="text-lg font-semibold tracking-tight text-stone-900 dark:text-white">Pendientes</span>
           </div>
 

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 200">
+  <!-- Emblema Kamposzoe: aro verde con el nombre, círculo negro con caballito de mar y hojas. Fuente de los íconos de public/. -->
+  <defs>
+    <g id="caballito">
+      <path d="M48 8 C55 6 61 10 61 17 C61 22 58 25 59 29 C67 34 72 45 69 57 C67 66 61 71 60 78 C59 86 64 91 69 89 C74 87 74 80 69 79 C66 78.5 64 81 66 83 C63 84 61 81 62 78.5 C64 74 71 75 73 80 C75 87 69 94 62 92 C54 90 50 82 51 75 C52 68 45 64 42 57 C39 50 41 42 46 38 C47 36 46 34 44 33 C40 32 33 32 23 31.6 C19.5 31.4 19.5 27.9 23 27.8 C31 27.4 37 26 39 23 C40 16 43 10 48 8 Z" fill="#fff"/>
+      <path d="M68.5 45 C75 42 79 48 75 54 C73 56.5 70.5 56 69 54 Z" fill="#fff"/>
+      <path d="M49.5 8.4 L51.5 3.8 L53.6 7.2 L56.2 3.6 L57.4 8.6 Z" fill="#fff"/>
+      <circle cx="47" cy="19.5" r="2.3" fill="#111"/>
+      <g fill="none" stroke="#111" stroke-width="1.5" stroke-linecap="round">
+        <path d="M47 44 C52 44 56 46 58 49"/>
+        <path d="M46.5 51 C51.5 51 56 53 58.5 56.5"/>
+        <path d="M50 59 C54 60 57.5 62 58.5 65.5"/>
+      </g>
+    </g>
+  </defs>
+  <circle cx="100" cy="100" r="96" fill="#fff"/>
+  <circle cx="100" cy="100" r="92" fill="#1f4a33"/>
+  <circle cx="100" cy="100" r="58" fill="#111" stroke="#fff" stroke-width="3"/>
+  <g fill="#fff" font-family="Arial Black, Arial, Helvetica, sans-serif" font-weight="900" font-size="23" text-anchor="middle">
+    <text x="37.76" y="70.21" transform="rotate(-64.42 37.76 70.21)">K</text>
+    <text x="48.56" y="54.01" transform="rotate(-48.20 48.56 54.01)">A</text>
+    <text x="65.04" y="40.51" transform="rotate(-30.45 65.04 40.51)">M</text>
+    <text x="84.28" y="32.81" transform="rotate(-13.17 84.28 32.81)">P</text>
+    <text x="103.68" y="31.10" transform="rotate(3.06 103.68 31.10)">O</text>
+    <text x="122.68" y="34.83" transform="rotate(19.19 122.68 34.83)">S</text>
+    <text x="138.56" y="42.78" transform="rotate(33.98 138.56 42.78)">Z</text>
+    <text x="152.72" y="55.48" transform="rotate(49.82 152.72 55.48)">O</text>
+    <text x="162.77" y="71.36" transform="rotate(65.47 162.77 71.36)">E</text>
+  </g>
+  <use xlink:href="#caballito" transform="translate(53 50) scale(0.96)"/>
+  <!-- hojas -->
+  <g fill="#fff">
+    <path d="M99 183 C87 183 80 175 82 164 C93 164 100 172 99 183 Z"/>
+    <path d="M101 183 C113 183 120 175 118 164 C107 164 100 172 101 183 Z"/>
+  </g>
+  <g fill="none" stroke="#1f4a33" stroke-width="1.6" stroke-linecap="round">
+    <path d="M98 181 C94 175 90 171 86 168"/>
+    <path d="M102 181 C106 175 110 171 114 168"/>
+  </g>
+</svg>
