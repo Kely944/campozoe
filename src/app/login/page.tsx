@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState } from "react";
 import { signIn } from "../actions";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -112,6 +113,10 @@ export default function LoginPage() {
           </form>
 
           <p className="mt-6 text-sm text-stone-600 dark:text-stone-400">¿No tienes cuenta? Pídela a la administradora.</p>
+          <p className="mt-10 text-xs text-stone-500 dark:text-stone-400">
+            <Link className="underline hover:text-stone-800 dark:hover:text-white" href="/privacidad">Privacidad</Link> ·{" "}
+            <Link className="underline hover:text-stone-800 dark:hover:text-white" href="/terminos">Términos</Link>
+          </p>
         </div>
       </section>
     </main>
