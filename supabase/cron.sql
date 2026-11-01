@@ -8,8 +8,8 @@ select cron.schedule(
   '*/5 * * * *',
   $$
   select net.http_post(
-    url := 'https://TU-APP.vercel.app/api/cron/reminders',
-    headers := jsonb_build_object('Authorization', 'Bearer TU_CRON_SECRET')
+    url := 'https://campozoe.vercel.app/api/cron/reminders',
+    headers := jsonb_build_object('Authorization', 'Bearer fceb2d80aeeaaa4d2faa3a0733cc62257f975e062bd4e2b5f99d697eed88715a')
   );
   $$
 );

@@ -109,13 +109,19 @@ openssl rand -hex 16   # → WHATSAPP_VERIFY_TOKEN
 2. Framework: Next.js (lo detecta solo). No cambies los comandos de build.
 3. En **Environment Variables** carga:
 
-   | Variable | Valor |
-   | --- | --- |
-   | `NEXT_PUBLIC_SUPABASE_URL` | Paso 1 |
-   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Paso 1 |
-   | `SUPABASE_SERVICE_ROLE_KEY` | Paso 1 |
-   | `CRON_SECRET` | Paso 3 |
-   | `WHATSAPP_VERIFY_TOKEN` | Paso 3 |
+   | Variable | Valor | Type |
+   | --- | --- | --- |
+   | `NEXT_PUBLIC_SUPABASE_URL` | Paso 1 | **Config** |
+   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Paso 1 | **Config** |
+   | `SUPABASE_SERVICE_ROLE_KEY` | Paso 1 | Secret |
+   | `CRON_SECRET` | Paso 3 | Secret |
+   | `WHATSAPP_VERIFY_TOKEN` | Paso 3 | Secret |
+
+   Marca cada una para **Production** y **Preview**. Las `NEXT_PUBLIC_*` van como **Config** porque viajan al navegador y no son secretas; si las guardas como Secret, Vercel no deja editarlas después ("Remove the public framework prefix…") y hay que borrarlas y crearlas de nuevo. Todas las demás, incluidas las de WhatsApp y correo, van como **Secret**.
+
+   `NEXT_PUBLIC_SUPABASE_URL` es solo `https://xxxx.supabase.co`, sin `/rest/v1` ni barra al final. Si lleva `/rest/v1`, el login responde "Correo o contraseña incorrectos" aunque la contraseña esté bien (en los logs de Supabase se ven 404 en `/rest/v1/auth/v1/token`).
+
+   Si cambias una `NEXT_PUBLIC_*` después del primer deploy, vuelve a desplegar (**Deployments > ⋯ > Redeploy**): se fijan al compilar.
 
    Las de WhatsApp y correo se agregan en los pasos 6 y 7. Sin ellas la app funciona, pero los avisos solo se simulan y no llega nada al celular.
 
@@ -146,26 +152,27 @@ Para quitarlo: `select cron.unschedule('m1-recordatorios');`
 ## 6. Conectar WhatsApp (Meta)
 
 1. En developers.facebook.com crea una app de tipo **Business** y agrega el producto **WhatsApp**.
-2. Registra el número exclusivo del sistema.
-3. Crea la plantilla en **WhatsApp Manager > Plantillas de mensajes**:
+2. **Verifica el negocio** (Configuración del negocio > Centro de seguridad > Verificación del negocio). Meta no deja enviar ningún mensaje, ni siquiera desde el número de prueba, hasta que el negocio esté verificado: el envío falla con el error `131031 Business Account locked`. Ten listos el certificado del **RUC** y una factura de servicios o estado de cuenta con el **mismo nombre legal y dirección** que pongas en el formulario. Tarda de 1 a 14 días; mientras tanto puedes seguir con los pasos 5, 7 y 8.
+3. Registra el número exclusivo del sistema.
+4. Crea la plantilla en **WhatsApp Manager > Plantillas de mensajes**:
    - Nombre: `recordatorio_tarea`
    - Categoría: **Utility**, idioma: **Español**
    - Cuerpo: `{{1}}: {{2}}. Vence: {{3}}.`
    - Botones de respuesta rápida, en este orden: `Hecho` y `Recordar en 1 h`
 
    Espera a que esté **aprobada** antes de seguir. La app envía los dos botones y Meta rechaza el mensaje si la plantilla tiene uno solo.
-4. Crea un **usuario del sistema** en Meta Business (Configuración del negocio > Usuarios del sistema) con permiso `whatsapp_business_messaging` y genera un **token permanente**. El token temporal de la consola vence en 24 horas.
-5. Carga en Vercel:
+5. Crea un **usuario del sistema** en Meta Business (Configuración del negocio > Usuarios del sistema) con permiso `whatsapp_business_messaging` y genera un **token permanente**. El token temporal de la consola vence en 24 horas.
+6. Carga en Vercel:
 
    | Variable | De dónde sale |
    | --- | --- |
-   | `WHATSAPP_TOKEN` | Token permanente del punto 4 |
+   | `WHATSAPP_TOKEN` | Token permanente del punto 5 |
    | `WHATSAPP_PHONE_NUMBER_ID` | WhatsApp > API Setup > *Phone number ID* |
    | `WHATSAPP_APP_SECRET` | App settings > Basic > *App secret* |
 
    `WHATSAPP_TEMPLATE` y `WHATSAPP_TEMPLATE_LANG` solo hacen falta si la plantilla tiene otro nombre o idioma (por defecto `recordatorio_tarea` y `es`).
-6. Vuelve a desplegar en Vercel para que tome las variables.
-7. En **WhatsApp > Configuration > Webhook**:
+7. Vuelve a desplegar en Vercel para que tome las variables.
+8. En **WhatsApp > Configuration > Webhook**:
    - URL: `https://TU-APP.vercel.app/api/whatsapp/webhook`
    - Token de verificación: tu `WHATSAPP_VERIFY_TOKEN`
    - Suscríbete al campo `messages`.
@@ -232,6 +239,7 @@ Abrir la dirección en Chrome (Android) o Safari (iPhone) y elegir **Agregar a p
 | Las pantallas tardan en cargar | Vercel y Supabase en regiones distintas (paso 4.5) |
 | No llega ningún aviso | Cron sin activar o con `401` (paso 5); fuera de horario (no se avisa entre 21:00 y 07:00) |
 | Los avisos dicen "simulado" en los registros de Vercel | Faltan variables de WhatsApp o no se volvió a desplegar |
+| Error `131031 Business Account locked` | Falta verificar el negocio en Meta (paso 6.2) |
 | Meta rechaza el mensaje | Plantilla no aprobada, con otro nombre o sin los dos botones |
 | "Hecho" en WhatsApp no marca la tarea | Falta `WHATSAPP_APP_SECRET`, o el teléfono de quien responde no está en **Equipo** |
 | El respaldo falla en GitHub | Se usó la cadena *Direct connection* en vez de *Session pooler* |

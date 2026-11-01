@@ -13,17 +13,14 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6f3ec" },
-    { media: "(prefers-color-scheme: dark)", color: "#151210" },
-  ],
+  themeColor: "#f6f3ec",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
 };
 
-// Aplica el tema antes de pintar para que no parpadee: elección guardada o la del sistema
-const themeScript = `try{var t=localStorage.getItem("theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.classList.add("dark")}catch(e){}`;
+// Aplica el tema antes de pintar para que no parpadee: claro por defecto, oscuro solo si la persona lo eligió
+const themeScript = `try{if(localStorage.getItem("theme")==="dark")document.documentElement.classList.add("dark")}catch(e){}`;
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
